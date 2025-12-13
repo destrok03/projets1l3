@@ -33,8 +33,16 @@ public class QuartierView {
             System.out.println("5- Supprimer un quartier");
             System.out.println("0- Retour");
             System.out.print("Votre choix: ");
-            choix = scanner.nextInt();
-            scanner.nextLine();
+            
+            try {
+                choix = scanner.nextInt();
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.out.println("Entree invalide!");
+                scanner = new java.util.Scanner(System.in);
+                choix = -1;
+                continue;
+            }
 
             switch (choix) {
                 case 1:

@@ -31,8 +31,16 @@ public class ProduitView {
             System.out.println("4- Lister tous les produits");
             System.out.println("0- Retour");
             System.out.print("Votre choix: ");
-            choix = scanner.nextInt();
-            scanner.nextLine();
+            
+            try {
+                choix = scanner.nextInt();
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.out.println("Entree invalide!");
+                scanner = new java.util.Scanner(System.in);
+                choix = -1;
+                continue;
+            }
 
             switch (choix) {
                 case 1:
@@ -66,8 +74,16 @@ public class ProduitView {
             System.out.println("4- Archiver un burger");
             System.out.println("0- Retour");
             System.out.print("Votre choix: ");
-            choix = scanner.nextInt();
-            scanner.nextLine();
+            
+            try {
+                choix = scanner.nextInt();
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.out.println("Entree invalide!");
+                scanner = new java.util.Scanner(System.in);
+                choix = -1;
+                continue;
+            }
 
             switch (choix) {
                 case 1:
@@ -211,8 +227,16 @@ public class ProduitView {
             System.out.println("6- Archiver un complement");
             System.out.println("0- Retour");
             System.out.print("Votre choix: ");
-            choix = scanner.nextInt();
-            scanner.nextLine();
+            
+            try {
+                choix = scanner.nextInt();
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.out.println("Entree invalide!");
+                scanner = new java.util.Scanner(System.in);
+                choix = -1;
+                continue;
+            }
 
             switch (choix) {
                 case 1:
@@ -329,8 +353,16 @@ public class ProduitView {
             System.out.println("3- Archiver un menu");
             System.out.println("0- Retour");
             System.out.print("Votre choix: ");
-            choix = scanner.nextInt();
-            scanner.nextLine();
+            
+            try {
+                choix = scanner.nextInt();
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.out.println("Entree invalide!");
+                scanner = new java.util.Scanner(System.in);
+                choix = -1;
+                continue;
+            }
 
             switch (choix) {
                 case 1:
