@@ -66,14 +66,4 @@ public class ProduitServiceImpl implements ProduitService {
     public ArrayList<Produit> getFrites() {
         return produitRepository.selectByTypeComplement(TypeComplement.FRITES);
     }
-
-    @Override
-    public ArrayList<Produit> getSauces() {
-        return produitRepository.selectByTypeComplement(TypeComplement.SAUCE);
-    }
-
-    @Override
-    public ArrayList<Produit> getDesserts() {
-        return produitRepository.selectByTypeComplement(TypeComplement.DESSERT);
-    }
 }

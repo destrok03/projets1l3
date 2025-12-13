@@ -16,6 +16,4 @@ public interface ProduitService {
     ArrayList<Produit> getComplements();
     ArrayList<Produit> getBoissons();
     ArrayList<Produit> getFrites();
-    ArrayList<Produit> getSauces();
-    ArrayList<Produit> getDesserts();
 }

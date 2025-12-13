@@ -79,7 +79,10 @@ public class ProduitRepositoryDbImpl implements ProduitRepository {
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                produits.add(mapResultSetToProduit(rs));
+                Produit p = mapResultSetToProduit(rs);
+                if (p != null) { // Ignorer les produits avec types obsolètes
+                    produits.add(p);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Erreur selection produits: " + e.getMessage());
@@ -169,7 +172,10 @@ public class ProduitRepositoryDbImpl implements ProduitRepository {
             stmt.setString(1, type.name());
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                produits.add(mapResultSetToProduit(rs));
+                Produit p = mapResultSetToProduit(rs);
+                if (p != null) { // Ignorer les produits avec types obsolètes
+                    produits.add(p);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Erreur selection produits par type: " + e.getMessage());
@@ -186,7 +192,10 @@ public class ProduitRepositoryDbImpl implements ProduitRepository {
             stmt.setString(1, typeComplement.name());
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                produits.add(mapResultSetToProduit(rs));
+                Produit p = mapResultSetToProduit(rs);
+                if (p != null) { // Ignorer les produits avec types obsolètes
+                    produits.add(p);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Erreur selection complements par type: " + e.getMessage());
@@ -214,7 +223,12 @@ public class ProduitRepositoryDbImpl implements ProduitRepository {
                 Complement complement = new Complement();
                 String typeComp = rs.getString("type_complement");
                 if (typeComp != null) {
-                    complement.setTypeComplement(TypeComplement.valueOf(typeComp));
+                    try {
+                        complement.setTypeComplement(TypeComplement.valueOf(typeComp));
+                    } catch (IllegalArgumentException e) {
+                        // Types DESSERT et SAUCE ont été supprimés, on les ignore silencieusement
+                        return null; // On retourne null pour ignorer ce produit
+                    }
                 }
                 produit = complement;
                 break;

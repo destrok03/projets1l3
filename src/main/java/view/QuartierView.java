@@ -25,23 +25,31 @@ public class QuartierView {
     public void afficherMenu() {
         int choix;
         do {
-            System.out.println("\n========== GESTION DES QUARTIERS ==========");
-            System.out.println("1- Ajouter un quartier");
-            System.out.println("2- Lister tous les quartiers");
-            System.out.println("3- Lister par zone");
-            System.out.println("4- Modifier un quartier");
-            System.out.println("5- Supprimer un quartier");
-            System.out.println("0- Retour");
-            System.out.print("Votre choix: ");
+            choix = -1;
+            boolean saisieValide = false;
             
-            try {
-                choix = scanner.nextInt();
-                scanner.nextLine();
-            } catch (Exception e) {
-                System.out.println("Entree invalide!");
-                scanner = new java.util.Scanner(System.in);
-                choix = -1;
-                continue;
+            while (!saisieValide) {
+                try {
+                    System.out.println("\n========== GESTION DES QUARTIERS ==========");
+                    System.out.println("1- Ajouter un quartier");
+                    System.out.println("2- Lister tous les quartiers");
+                    System.out.println("3- Lister par zone");
+                    System.out.println("4- Modifier un quartier");
+                    System.out.println("5- Supprimer un quartier");
+                    System.out.println("0- Retour");
+                    System.out.print("Votre choix: ");
+                    choix = scanner.nextInt();
+                    scanner.nextLine();
+                    
+                    if (choix >= 0 && choix <= 5) {
+                        saisieValide = true;
+                    } else {
+                        System.out.println("\n⚠️  Erreur: Veuillez saisir un nombre entre 0 et 5!");
+                    }
+                } catch (Exception e) {
+                    System.out.println("\n⚠️  Erreur: Veuillez saisir un nombre valide!");
+                    scanner.nextLine();
+                }
             }
 
             switch (choix) {

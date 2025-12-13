@@ -52,14 +52,32 @@ public class Application {
     }
 
     private static int menuPrincipal() {
-        System.out.println("\n========= MENU PRINCIPAL =========");
-        System.out.println("1- Gestion des Produits");
-        System.out.println("2- Gestion des Zones");
-        System.out.println("3- Gestion des Quartiers");
-        System.out.println("4- Gestion des Livreurs");
-        System.out.println("0- Quitter");
-        System.out.println("==================================");
-        System.out.print("Votre choix: ");
-        return scanner.nextInt();
+        int choix = -1;
+        boolean saisieValide = false;
+        
+        while (!saisieValide) {
+            try {
+                System.out.println("\n========= MENU PRINCIPAL =========");
+                System.out.println("1- Gestion des Produits");
+                System.out.println("2- Gestion des Zones");
+                System.out.println("3- Gestion des Quartiers");
+                System.out.println("4- Gestion des Livreurs");
+                System.out.println("0- Quitter");
+                System.out.println("==================================");
+                System.out.print("Votre choix: ");
+                choix = scanner.nextInt();
+                scanner.nextLine();
+                
+                if (choix >= 0 && choix <= 4) {
+                    saisieValide = true;
+                } else {
+                    System.out.println("\n⚠️  Erreur: Veuillez saisir un nombre entre 0 et 4!");
+                }
+            } catch (Exception e) {
+                System.out.println("\n⚠️  Erreur: Veuillez saisir un nombre valide!");
+                scanner.nextLine();
+            }
+        }
+        return choix;
     }
 }

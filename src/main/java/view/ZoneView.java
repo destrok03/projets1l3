@@ -25,24 +25,32 @@ public class ZoneView {
     public void afficherMenu() {
         int choix;
         do {
-            System.out.println("\n========== GESTION DES ZONES ==========");
-            System.out.println("1- Ajouter une zone");
-            System.out.println("2- Lister toutes les zones");
-            System.out.println("3- Modifier une zone");
-            System.out.println("4- Activer/Desactiver une zone");
-            System.out.println("5- Voir les quartiers d'une zone");
-            System.out.println("6- Supprimer une zone");
-            System.out.println("0- Retour");
-            System.out.print("Votre choix: ");
+            choix = -1;
+            boolean saisieValide = false;
             
-            try {
-                choix = scanner.nextInt();
-                scanner.nextLine();
-            } catch (Exception e) {
-                System.out.println("Entree invalide!");
-                scanner = new java.util.Scanner(System.in);
-                choix = -1;
-                continue;
+            while (!saisieValide) {
+                try {
+                    System.out.println("\n========== GESTION DES ZONES ==========");
+                    System.out.println("1- Ajouter une zone");
+                    System.out.println("2- Lister toutes les zones");
+                    System.out.println("3- Modifier une zone");
+                    System.out.println("4- Activer/Desactiver une zone");
+                    System.out.println("5- Voir les quartiers d'une zone");
+                    System.out.println("6- Supprimer une zone");
+                    System.out.println("0- Retour");
+                    System.out.print("Votre choix: ");
+                    choix = scanner.nextInt();
+                    scanner.nextLine();
+                    
+                    if (choix >= 0 && choix <= 6) {
+                        saisieValide = true;
+                    } else {
+                        System.out.println("\n⚠️  Erreur: Veuillez saisir un nombre entre 0 et 6!");
+                    }
+                } catch (Exception e) {
+                    System.out.println("\n⚠️  Erreur: Veuillez saisir un nombre valide!");
+                    scanner.nextLine();
+                }
             }
 
             switch (choix) {
