@@ -1,0 +1,79 @@
+@model ProduitListDto
+
+<div class="product-card h-100">
+    <div class="position-relative">
+        @if (!string.IsNullOrEmpty(Model.Image))
+        {
+            <img src="@Model.Image" class="card-img-top" alt="@Model.Nom">
+        }
+        else
+        {
+            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:210px;">
+                <i class="fas fa-hamburger fa-3x text-muted"></i>
+            </div>
+        }
+        <span class="badge-soft position-absolute top-0 start-0 m-3">
+            @switch (Model.TypeProduit)
+            {
+                case TypeProduit.BURGER:
+                    @:Burger
+                    break;
+                case TypeProduit.MENU:
+                    @:Menu
+                    break;
+                case TypeProduit.COMPLEMENT:
+                    @switch (Model.TypeComplement)
+                    {
+                        case TypeComplement.BOISSON:
+                            @:Boisson
+                            break;
+                        case TypeComplement.FRITES:
+                            @:Frites
+                            break;
+                        default:
+                            @:Complément
+                            break;
+                    }
+                    break;
+                default:
+                    @:Produit
+                    break;
+            }
+        </span>
+    </div>
+
+    <div class="card-body p-4 d-flex flex-column">
+        <h3 class="h5 fw-semibold mb-2">@Model.Nom</h3>
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p class="text-muted-brasil small flex-grow-1 mb-3">
+                @(Model.Description.Length > 90 ? Model.Description.Substring(0, 90) + "…" : Model.Description)
+            </p>
+        }
+
+        @if (Model.TypeProduit == TypeProduit.MENU)
+        {
+            <ul class="list-unstyled text-muted-brasil small mb-3">
+                @if (!string.IsNullOrEmpty(Model.BurgerNom))
+                {
+                    <li><i class="fas fa-hamburger me-2 text-brasil"></i>@Model.BurgerNom</li>
+                }
+                @if (!string.IsNullOrEmpty(Model.FritesNom))
+                {
+                    <li><i class="fas fa-french-fries me-2 text-brasil"></i>@Model.FritesNom</li>
+                }
+                @if (!string.IsNullOrEmpty(Model.BoissonNom))
+                {
+                    <li><i class="fas fa-glass-water me-2 text-brasil"></i>@Model.BoissonNom</li>
+                }
+            </ul>
+        }
+
+        <div class="mt-auto d-flex justify-content-between align-items-center">
+            <span class="price-tag">@Model.Prix.ToString("N0") FCFA</span>
+            <div class="d-flex gap-2">
+                <a asp-controller="Catalogue" asp-action="Ajouter" asp-route-id="@Model.Id" class="btn btn-brasil btn-sm">Ajouter</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,52 @@
+@model PaginationViewModel
+
+@if (Model.NbrePage > 1)
+{
+    <nav aria-label="Pagination">
+        <ul class="pagination justify-content-center">
+            @* Bouton Précédent *@
+            <li class="page-item @(Model.PageEncours <= 1 ? "disabled" : "")">
+                @{
+                    var prevParams = new Dictionary<string, string?>(Model.QueryParams);
+                    prevParams["page"] = (Model.PageEncours - 1).ToString();
+                }
+                <a class="page-link" 
+                   asp-controller="@Model.ControllerName" 
+                   asp-action="@Model.ActionName"
+                   asp-all-route-data="@prevParams">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+
+            @* Pages *@
+            @for (int i = 1; i <= Model.NbrePage; i++)
+            {
+                var pageParams = new Dictionary<string, string?>(Model.QueryParams);
+                pageParams["page"] = i.ToString();
+                
+                <li class="page-item @(i == Model.PageEncours ? "active" : "")">
+                    <a class="page-link" 
+                       asp-controller="@Model.ControllerName" 
+                       asp-action="@Model.ActionName"
+                       asp-all-route-data="@pageParams">
+                        @i
+                    </a>
+                </li>
+            }
+
+            @* Bouton Suivant *@
+            <li class="page-item @(Model.PageEncours >= Model.NbrePage ? "disabled" : "")">
+                @{
+                    var nextParams = new Dictionary<string, string?>(Model.QueryParams);
+                    nextParams["page"] = (Model.PageEncours + 1).ToString();
+                }
+                <a class="page-link" 
+                   asp-controller="@Model.ControllerName" 
+                   asp-action="@Model.ActionName"
+                   asp-all-route-data="@nextParams">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+}

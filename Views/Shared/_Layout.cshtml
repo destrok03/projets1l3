@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Brasil Burger</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-brasil sticky-top">
+        <div class="container">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                <span class="brand-icon">🍔</span>
+                <span class="brand-text">Brasil <span class="text-brasil">Burger</span></span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Catalogue" asp-action="Index">Notre Carte</a>
+                    </li>
+                    @if (Context.Session.GetInt32("ClientId") != null)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Commande" asp-action="MesCommandes">Mes Commandes</a>
+                        </li>
+                    }
+                </ul>
+
+                <ul class="navbar-nav align-items-center gap-3">
+                    <li class="nav-item">
+                        <a class="nav-link cart-link" asp-controller="Panier" asp-action="Index">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="cart-badge" id="panierCount">
+                                @(Context.Session.GetString("PanierCount") ?? "0")
+                            </span>
+                        </a>
+                    </li>
+
+                    @if (Context.Session.GetInt32("ClientId") != null)
+                    {
+                        <li class="nav-item">
+                            <span class="nav-link client-name">@Context.Session.GetString("ClientNom")</span>
+                        </li>
+                        <li class="nav-item">
+                            <form asp-controller="Auth" asp-action="Deconnexion" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-outline-danger-custom">
+                                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+                                </button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="btn btn-outline-brasil" asp-controller="Auth" asp-action="Connexion">
+                                <i class="fas fa-user me-1"></i> Connexion
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages Flash -->
+    <div class="container mt-3">
+        @if (TempData["success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["info"] != null)
+        {
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i>@TempData["info"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-brasil">
+        <div class="container">
+            <div class="row gy-4">
+                <div class="col-lg-3">
+                    <div class="footer-brand mb-3">
+                        <span class="brand-icon">🍔</span>
+                        <span class="brand-text">Brasil Burger</span>
+                    </div>
+                    <p class="footer-description">
+                        Le meilleur du burger brésilien, préparé avec amour et des ingrédients frais de qualité.
+                    </p>
+                </div>
+                <div class="col-lg-3">
+                    <h6 class="footer-title">Contact</h6>
+                    <ul class="footer-list">
+                        <li><i class="fas fa-map-marker-alt me-2"></i>123 Avenue Cheikh Anta Diop, Dakar</li>
+                        <li><i class="fas fa-phone me-2"></i>+221 77 123 45 67</li>
+                        <li><i class="fas fa-clock me-2"></i>11h - 23h, tous les jours</li>
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h6 class="footer-title">Navigation</h6>
+                    <ul class="footer-list">
+                        <li><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+                        <li><a asp-controller="Catalogue" asp-action="Index">Notre Carte</a></li>
+                        <li><a asp-controller="Commande" asp-action="MesCommandes">Mes Commandes</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h6 class="footer-title">Suivez-nous</h6>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="footer-divider">
+            <div class="text-center footer-copyright">
+                &copy; @DateTime.Now.Year Brasil Burger. Tous droits réservés.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Custom JS -->
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
