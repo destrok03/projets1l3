@@ -1,0 +1,212 @@
+@model CommandeDetailViewModel
+@{
+    ViewData["Title"] = $"Commande #{Model.Commande.Id}";
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Commande" asp-action="MesCommandes">Mes commandes</a></li>
+            <li class="breadcrumb-item active">Commande #@Model.Commande.Id</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="fas fa-receipt text-warning me-2"></i>Commande #@Model.Commande.Id
+        </h2>
+        @{
+            var badgeClass = Model.Commande.Statut switch
+            {
+                StatutCommande.EN_ATTENTE => "bg-warning text-dark",
+                StatutCommande.VALIDEE => "bg-info",
+                StatutCommande.EN_PREPARATION => "bg-primary",
+                StatutCommande.PRETE => "bg-success",
+                StatutCommande.EN_LIVRAISON => "bg-info",
+                StatutCommande.TERMINEE => "bg-success",
+                StatutCommande.ANNULEE => "bg-danger",
+                _ => "bg-secondary"
+            };
+            var statutText = Model.Commande.Statut switch
+            {
+                StatutCommande.EN_ATTENTE => "En attente de paiement",
+                StatutCommande.VALIDEE => "Validée",
+                StatutCommande.EN_PREPARATION => "En préparation",
+                StatutCommande.PRETE => "Prête",
+                StatutCommande.EN_LIVRAISON => "En livraison",
+                StatutCommande.TERMINEE => "Terminée",
+                StatutCommande.ANNULEE => "Annulée",
+                _ => "Inconnu"
+            };
+        }
+        <span class="badge @badgeClass fs-6">@statutText</span>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <!-- Articles -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-box text-warning me-2"></i>Articles commandés</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th class="text-center">Quantité</th>
+                                <th class="text-end">Prix</th>
+                                <th class="text-end">Sous-total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ligne in Model.Commande.Lignes)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(ligne.ProduitImage))
+                                            {
+                                                <img src="@ligne.ProduitImage" alt="@ligne.ProduitNom" 
+                                                     class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                            }
+                                            <span>@ligne.ProduitNom</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">@ligne.Quantite</td>
+                                    <td class="text-end">@ligne.PrixUnitaire.ToString("N0") FCFA</td>
+                                    <td class="text-end fw-bold">@ligne.SousTotal.ToString("N0") FCFA</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end">Sous-total</td>
+                                <td class="text-end">@((Model.Commande.MontantTotal - Model.Commande.FraisLivraison).ToString("N0")) FCFA</td>
+                            </tr>
+                            @if (Model.Commande.FraisLivraison > 0)
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-end">Frais de livraison</td>
+                                    <td class="text-end">@Model.Commande.FraisLivraison.ToString("N0") FCFA</td>
+                                </tr>
+                            }
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Total</td>
+                                <td class="text-end fw-bold text-brasil h5">@Model.Commande.MontantTotal.ToString("N0") FCFA</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            @if (!string.IsNullOrEmpty(Model.Commande.Notes))
+            {
+                <div class="card border-0 shadow">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0"><i class="fas fa-comment text-warning me-2"></i>Notes</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@Model.Commande.Notes</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Informations commande -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-info-circle text-warning me-2"></i>Informations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <p class="text-muted small mb-1">Date de commande</p>
+                        <p class="fw-medium mb-0">@Model.Commande.DateCommande.ToString("dd/MM/yyyy à HH:mm")</p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted small mb-1">Mode de service</p>
+                        <p class="fw-medium mb-0">
+                            @switch (Model.Commande.TypeLivraison)
+                            {
+                                case TypeLivraison.SUR_PLACE:
+                                    <text><i class="fas fa-store me-1"></i>Sur place</text>
+                                    break;
+                                case TypeLivraison.A_EMPORTER:
+                                    <text><i class="fas fa-shopping-bag me-1"></i>À emporter</text>
+                                    break;
+                                case TypeLivraison.LIVRAISON:
+                                    <text><i class="fas fa-truck me-1"></i>Livraison</text>
+                                    break;
+                            }
+                        </p>
+                    </div>
+                    @if (Model.Commande.TypeLivraison == TypeLivraison.LIVRAISON)
+                    {
+                        <div class="mb-3">
+                            <p class="text-muted small mb-1">Zone / Quartier</p>
+                            <p class="fw-medium mb-0">@Model.Commande.ZoneNom / @Model.Commande.QuartierNom</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Paiement -->
+            @if (Model.Commande.Paiement != null)
+            {
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0"><i class="fas fa-credit-card text-warning me-2"></i>Paiement</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <p class="text-muted small mb-1">Mode de paiement</p>
+                            <p class="fw-medium mb-0">
+                                @(Model.Commande.Paiement.ModePaiement == ModePaiement.WAVE ? "Wave" : "Orange Money")
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="text-muted small mb-1">Référence</p>
+                            <p class="fw-medium mb-0 font-monospace small">@Model.Commande.Paiement.ReferenceTransaction</p>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-1">Date</p>
+                            <p class="fw-medium mb-0">@Model.Commande.Paiement.DatePaiement.ToString("dd/MM/yyyy à HH:mm")</p>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (Model.Commande.Statut == StatutCommande.EN_ATTENTE)
+            {
+                <div class="card border-0 shadow border-warning">
+                    <div class="card-body text-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                        <p>Cette commande n'est pas encore payée.</p>
+                        <a asp-action="Payer" asp-route-id="@Model.Commande.Id" class="btn btn-brasil">
+                            <i class="fas fa-credit-card me-2"></i>Payer maintenant
+                        </a>
+                    </div>
+                </div>
+            }
+
+            <!-- Actions -->
+            <div class="d-grid gap-2">
+                <a asp-action="MesCommandes" class="btn btn-outline-brasil">
+                    <i class="fas fa-arrow-left me-2"></i>Retour aux commandes
+                </a>
+                @if (Model.Commande.Statut == StatutCommande.EN_ATTENTE)
+                {
+                    <form asp-action="Annuler" asp-route-id="@Model.Commande.Id" method="post">
+                        <button type="submit" class="btn btn-outline-danger w-100"
+                                onclick="return confirm('Êtes-vous sûr de vouloir annuler cette commande ?');">
+                            <i class="fas fa-times me-2"></i>Annuler la commande
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

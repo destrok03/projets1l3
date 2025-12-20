@@ -1,0 +1,139 @@
+@model CommandeDetailViewModel
+@{
+    ViewData["Title"] = "Commande confirmée";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Confirmation -->
+            <div class="card border-0 shadow text-center mb-4">
+                <div class="card-body py-5">
+                    <div class="text-success mb-4">
+                        <i class="fas fa-check-circle fa-5x"></i>
+                    </div>
+                    <h2 class="fw-bold mb-3">Commande confirmée !</h2>
+                    <p class="lead text-muted mb-4">
+                        Merci pour votre commande. Votre paiement a été effectué avec succès.
+                    </p>
+                    <p class="mb-0">
+                        <span class="badge bg-brasil fs-5">Commande #@Model.Commande.Id</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Détails de la commande -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-receipt text-warning me-2"></i>Détails de la commande</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-1 text-muted small">Date de commande</p>
+                            <p class="fw-medium">@Model.Commande.DateCommande.ToString("dd/MM/yyyy à HH:mm")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1 text-muted small">Mode de service</p>
+                            <p class="fw-medium">
+                                @switch (Model.Commande.TypeLivraison)
+                                {
+                                    case TypeLivraison.SUR_PLACE:
+                                        <text><i class="fas fa-store me-1"></i>Sur place</text>
+                                        break;
+                                    case TypeLivraison.A_EMPORTER:
+                                        <text><i class="fas fa-shopping-bag me-1"></i>À emporter</text>
+                                        break;
+                                    case TypeLivraison.LIVRAISON:
+                                        <text><i class="fas fa-truck me-1"></i>Livraison</text>
+                                        break;
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    @if (Model.Commande.TypeLivraison == TypeLivraison.LIVRAISON)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1 text-muted small">Zone de livraison</p>
+                                <p class="fw-medium">@Model.Commande.ZoneNom</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1 text-muted small">Quartier</p>
+                                <p class="fw-medium">@Model.Commande.QuartierNom</p>
+                            </div>
+                        </div>
+                    }
+
+                    <hr>
+
+                    <h6 class="fw-bold mb-3">Articles commandés</h6>
+                    @foreach (var ligne in Model.Commande.Lignes)
+                    {
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>@ligne.ProduitNom x@ligne.Quantite</span>
+                            <span>@ligne.SousTotal.ToString("N0") FCFA</span>
+                        </div>
+                    }
+
+                    <hr>
+
+                    @if (Model.Commande.FraisLivraison > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Frais de livraison</span>
+                            <span>@Model.Commande.FraisLivraison.ToString("N0") FCFA</span>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between">
+                        <span class="h5 mb-0 fw-bold">Total payé</span>
+                        <span class="h5 text-brasil mb-0 fw-bold">@Model.Commande.MontantTotal.ToString("N0") FCFA</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations de paiement -->
+            @if (Model.Commande.Paiement != null)
+            {
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0"><i class="fas fa-credit-card text-warning me-2"></i>Informations de paiement</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1 text-muted small">Mode de paiement</p>
+                                <p class="fw-medium">
+                                    @if (Model.Commande.Paiement.ModePaiement == ModePaiement.WAVE)
+                                    {
+                                        <text><i class="fas fa-mobile-alt text-primary me-1"></i>Wave</text>
+                                    }
+                                    else
+                                    {
+                                        <text><i class="fas fa-mobile-alt text-warning me-1"></i>Orange Money</text>
+                                    }
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1 text-muted small">Référence</p>
+                                <p class="fw-medium font-monospace">@Model.Commande.Paiement.ReferenceTransaction</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-center gap-3">
+                <a asp-controller="Commande" asp-action="MesCommandes" class="btn btn-outline-brasil">
+                    <i class="fas fa-list me-2"></i>Mes commandes
+                </a>
+                <a asp-controller="Catalogue" asp-action="Index" class="btn btn-brasil">
+                    <i class="fas fa-utensils me-2"></i>Commander à nouveau
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

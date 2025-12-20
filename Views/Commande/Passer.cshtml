@@ -1,0 +1,211 @@
+@model PasserCommandeViewModel
+@{
+    ViewData["Title"] = "Passer commande";
+}
+
+<div class="container py-5">
+    <a asp-controller="Panier" asp-action="Index" class="link-back mb-4 d-inline-flex">
+        <i class="fas fa-arrow-left"></i> Retour au panier
+    </a>
+
+    <form asp-action="Passer" method="post" class="row g-4">
+        <div class="col-lg-7">
+            <!-- Récapitulatif panier -->
+            <div class="checkout-card mb-4">
+                <div class="checkout-header">
+                    <h2 class="fw-bold mb-0">Récapitulatif</h2>
+                    <span class="text-muted-brasil">@Model.Panier.NombreItems article(s)</span>
+                </div>
+                <div class="checkout-items">
+                    @foreach (var item in Model.Panier.Items)
+                    {
+                        <div class="checkout-item d-flex align-items-center">
+                            @if (!string.IsNullOrWhiteSpace(item.Image))
+                            {
+                                <img src="@item.Image" alt="@item.Nom" class="thumb-rounded" />
+                            }
+                            else
+                            {
+                                <div class="thumb-rounded d-flex align-items-center justify-content-center bg-light">
+                                    <i class="fas fa-hamburger text-muted"></i>
+                                </div>
+                            }
+                            <div class="flex-grow-1 ms-3">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h5 class="fw-semibold mb-1">@item.Nom</h5>
+                                        <small class="text-muted-brasil">x@item.Quantite</small>
+                                    </div>
+                                    <strong>@item.SousTotal.ToString("N0") FCFA</strong>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Mode de service -->
+            <div class="checkout-card p-4">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4"></div>
+                <h4 class="fw-bold mb-4">Mode de service</h4>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <input asp-for="CommandeForm.TypeLivraison" type="radio" value="SUR_PLACE" class="btn-check" id="type-surplace">
+                        <label class="delivery-option" for="type-surplace">
+                            <div>
+                                <strong>Sur place</strong>
+                                <small>Mangez au restaurant</small>
+                            </div>
+                            <span>0 FCFA</span>
+                        </label>
+                    </div>
+                    <div class="col-md-4">
+                        <input asp-for="CommandeForm.TypeLivraison" type="radio" value="A_EMPORTER" class="btn-check" id="type-emporter">
+                        <label class="delivery-option" for="type-emporter">
+                            <div>
+                                <strong>À emporter</strong>
+                                <small>Retirez sur place</small>
+                            </div>
+                            <span>0 FCFA</span>
+                        </label>
+                    </div>
+                    <div class="col-md-4">
+                        <input asp-for="CommandeForm.TypeLivraison" type="radio" value="LIVRAISON" class="btn-check" id="type-livraison">
+                        <label class="delivery-option" for="type-livraison">
+                            <div>
+                                <strong>Livraison</strong>
+                                <small>Chez vous, selon zone</small>
+                            </div>
+                            <span id="fraisLivraisonLabel">@Model.Panier.FraisLivraison?.ToString("N0") ?? "À définir"</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="sectionLivraison" class="mt-4" style="display:none;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="CommandeForm.QuartierId" class="form-label">Quartier *</label>
+                            <select asp-for="CommandeForm.QuartierId" class="form-select" id="quartierSelect">
+                                <option value="">-- Sélectionner --</option>
+                                @foreach (var quartier in Model.Quartiers)
+                                {
+                                    <option value="@quartier.Id" data-frais="@quartier.Zone?.PrixLivraison"
+                                        @(Model.CommandeForm.QuartierId == quartier.Id ? "selected" : "")>
+                                        @quartier.Nom (@quartier.Zone?.Nom)
+                                    </option>
+                                }
+                            </select>
+                            <span asp-validation-for="CommandeForm.QuartierId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CommandeForm.Adresse" class="form-label">Adresse détaillée</label>
+                            <input asp-for="CommandeForm.Adresse" class="form-control" placeholder="Ex: Immeuble A, étage 3" />
+                        </div>
+                    </div>
+                    <div id="fraisLivraisonInfo" class="auth-info mt-3" style="display:none;">
+                        Frais de livraison estimés : <strong id="fraisLivraisonMontant">@Model.Panier.FraisLivraison?.ToString("N0") ?? "0"</strong> FCFA
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label asp-for="CommandeForm.Notes" class="form-label">Notes (optionnel)</label>
+                    <textarea asp-for="CommandeForm.Notes" class="form-control" rows="3" placeholder="Allergies, instructions spécifiques..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Résumé total -->
+        <div class="col-lg-5">
+            <div class="summary-card sticky-top" style="top: 100px;">
+                <h5 class="mb-4">Total commande</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Sous-total</span>
+                    <span class="fw-semibold">@Model.Panier.SousTotal.ToString("N0") FCFA</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Frais de livraison</span>
+                    <span id="fraisLivraisonRecap">@Model.Panier.FraisLivraison?.ToString("N0") ?? "0" FCFA</span>
+                </div>
+                <hr>
+                <div class="total-line">
+                    <span class="h5 mb-0">Total à payer</span>
+                    <span class="h4 text-brasil mb-0" id="totalRecap">@Model.CommandeForm.MontantTotal.ToString("N0") FCFA</span>
+                </div>
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-brasil btn-lg">Continuer vers le paiement</button>
+                </div>
+                <p class="text-muted-brasil small text-center mt-3">Paiement sécurisé via Wave ou Orange Money</p>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const sousTotal = @Model.Panier.SousTotal;
+    const radios = document.querySelectorAll('input[name="CommandeForm.TypeLivraison"]');
+    const livraisonSection = document.getElementById('sectionLivraison');
+    const fraisRecap = document.getElementById('fraisLivraisonRecap');
+    const totalRecap = document.getElementById('totalRecap');
+    const fraisInfo = document.getElementById('fraisLivraisonInfo');
+    const fraisMontant = document.getElementById('fraisLivraisonMontant');
+    const quartierSelect = document.getElementById('quartierSelect');
+
+    function updateDeliveryOptions() {
+        document.querySelectorAll('.delivery-option').forEach(label => label.classList.remove('active'));
+        radios.forEach(radio => {
+            if (radio.checked) {
+                const label = document.querySelector(`label[for="${radio.id}"]`);
+                if (label) label.classList.add('active');
+            }
+        });
+    }
+
+    function updateTotals(frais) {
+        const fraisValue = Number(frais || 0);
+        fraisRecap.textContent = `${fraisValue.toLocaleString('fr-FR')} FCFA`;
+        totalRecap.textContent = `${(sousTotal + fraisValue).toLocaleString('fr-FR')} FCFA`;
+    }
+
+    function refreshLivraisonSection() {
+        const radioLivraison = document.getElementById('type-livraison');
+        if (radioLivraison?.checked) {
+            livraisonSection.style.display = '';
+            const selected = quartierSelect.options[quartierSelect.selectedIndex];
+            const frais = selected?.dataset?.frais ? Number(selected.dataset.frais) : 0;
+            fraisInfo.style.display = selected && selected.value ? '' : 'none';
+            fraisMontant.textContent = frais.toLocaleString('fr-FR');
+            updateTotals(frais);
+        } else {
+            livraisonSection.style.display = 'none';
+            fraisInfo.style.display = 'none';
+            quartierSelect.value = '';
+            updateTotals(0);
+        }
+    }
+
+    radios.forEach(radio => {
+        radio.addEventListener('change', refreshLivraisonSection);
+    });
+
+    if (quartierSelect) {
+        quartierSelect.addEventListener('change', () => {
+            const selected = quartierSelect.options[quartierSelect.selectedIndex];
+            const frais = selected?.dataset?.frais ? Number(selected.dataset.frais) : 0;
+            if (selected && selected.value) {
+                fraisInfo.style.display = '';
+                fraisMontant.textContent = frais.toLocaleString('fr-FR');
+            } else {
+                fraisInfo.style.display = 'none';
+            }
+            updateTotals(frais);
+        });
+    }
+
+    // Initialisation au chargement
+    updateDeliveryOptions();
+    refreshLivraisonSection();
+})();
+</script>
+}
