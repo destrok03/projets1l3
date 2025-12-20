@@ -1,0 +1,99 @@
+@model InscriptionViewModel
+@{
+    ViewData["Title"] = "Inscription";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card auth-card-lg">
+        <!-- Message d'info -->
+        @if (TempData["Message"] != null)
+        {
+            <div class="auth-message">
+                <i class="fas fa-info-circle me-2"></i>@TempData["Message"]
+            </div>
+        }
+        else
+        {
+            <div class="auth-message">
+                <i class="fas fa-gift me-2"></i>Connectez-vous pour continuer votre commande
+            </div>
+        }
+
+        <!-- Logo -->
+        <div class="text-center mb-3">
+            <span class="auth-logo">🍔</span>
+        </div>
+
+        <h1 class="auth-title">Créer un compte</h1>
+        <p class="auth-subtitle">Rejoignez Brasil Burger pour commander facilement</p>
+
+        <!-- Toggle Connexion / Inscription -->
+        <div class="auth-toggle">
+            <a asp-action="Connexion">Connexion</a>
+            <a class="active" asp-action="Inscription">Inscription</a>
+        </div>
+
+        <form asp-action="Inscription" method="post" class="auth-form">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <!-- Prénom et Nom -->
+            <div class="auth-row">
+                <div class="auth-col">
+                    <div class="auth-input-group">
+                        <span class="auth-input-icon"><i class="fas fa-user"></i></span>
+                        <input asp-for="Form.Prenom" class="auth-input" placeholder="Prénom" />
+                    </div>
+                    <span asp-validation-for="Form.Prenom" class="text-danger small"></span>
+                </div>
+                <div class="auth-col">
+                    <div class="auth-input-group">
+                        <span class="auth-input-icon"><i class="fas fa-user"></i></span>
+                        <input asp-for="Form.Nom" class="auth-input" placeholder="Nom" />
+                    </div>
+                    <span asp-validation-for="Form.Nom" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="auth-input-group">
+                <span class="auth-input-icon"><i class="fas fa-envelope"></i></span>
+                <input asp-for="Form.Email" type="email" class="auth-input" placeholder="Email" />
+            </div>
+            <span asp-validation-for="Form.Email" class="text-danger small"></span>
+
+            <!-- Téléphone -->
+            <div class="auth-input-group">
+                <span class="auth-input-icon"><i class="fas fa-phone"></i></span>
+                <input asp-for="Form.Telephone" class="auth-input" placeholder="Téléphone" />
+            </div>
+            <span asp-validation-for="Form.Telephone" class="text-danger small"></span>
+
+            <!-- Adresse -->
+            <div class="auth-input-group">
+                <span class="auth-input-icon"><i class="fas fa-map-marker-alt"></i></span>
+                <input asp-for="Form.Adresse" class="auth-input" placeholder="Adresse (ex: Dakar, Almadies)" />
+            </div>
+
+            <!-- Mot de passe -->
+            <div class="auth-input-group">
+                <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                <input asp-for="Form.MotDePasse" type="password" class="auth-input" placeholder="Mot de passe" />
+            </div>
+            <span asp-validation-for="Form.MotDePasse" class="text-danger small"></span>
+
+            <!-- Confirmer mot de passe -->
+            <div class="auth-input-group">
+                <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                <input asp-for="Form.ConfirmMotDePasse" type="password" class="auth-input" placeholder="Confirmer le mot de passe" />
+            </div>
+            <span asp-validation-for="Form.ConfirmMotDePasse" class="text-danger small"></span>
+
+            <!-- Quartier (caché) -->
+            <input type="hidden" asp-for="Form.QuartierId" />
+
+            <button type="submit" class="btn btn-brasil btn-lg w-100">
+                S'inscrire <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+        </form>
+    </div>
+</div>

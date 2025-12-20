@@ -1,0 +1,62 @@
+@model ConnexionViewModel
+@{
+    ViewData["Title"] = "Connexion";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <!-- Message d'info -->
+        @if (TempData["Message"] != null)
+        {
+            <div class="auth-message">
+                <i class="fas fa-info-circle me-2"></i>@TempData["Message"]
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(Model?.ReturnUrl))
+        {
+            <div class="auth-message">
+                <i class="fas fa-info-circle me-2"></i>Connectez-vous pour continuer votre commande
+            </div>
+        }
+
+        <!-- Logo -->
+        <div class="text-center mb-3">
+            <span class="auth-logo">🍔</span>
+        </div>
+
+        <h1 class="auth-title">Connexion</h1>
+        <p class="auth-subtitle">Connectez-vous pour suivre vos commandes</p>
+
+        <!-- Toggle Connexion / Inscription -->
+        <div class="auth-toggle">
+            <a class="active" asp-action="Connexion">Connexion</a>
+            <a asp-action="Inscription">Inscription</a>
+        </div>
+
+        <form asp-action="Connexion" method="post" class="auth-form">
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <!-- Email ou Téléphone -->
+            <div class="auth-input-group">
+                <span class="auth-input-icon"><i class="fas fa-envelope"></i></span>
+                <input asp-for="Form.Identifiant" class="auth-input" placeholder="Email ou Téléphone" />
+            </div>
+            <span asp-validation-for="Form.Identifiant" class="text-danger small"></span>
+
+            <!-- Mot de passe -->
+            <div class="auth-input-group">
+                <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                <input asp-for="Form.MotDePasse" type="password" class="auth-input" placeholder="Mot de passe" />
+            </div>
+            <span asp-validation-for="Form.MotDePasse" class="text-danger small"></span>
+
+            <button type="submit" class="btn btn-brasil btn-lg w-100">
+                Se connecter <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+
+            <a href="#" class="auth-forgot-link">Mot de passe oublié?</a>
+        </form>
+    </div>
+</div>
