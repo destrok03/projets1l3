@@ -1,2 +1,11 @@
-bin/  
-obj/  
+# Fichiers et dossiers à ignorer pour un projet .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+*.log
+secrets.json

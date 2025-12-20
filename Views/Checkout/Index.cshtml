@@ -1,0 +1,161 @@
+@model BrasilBurger.ViewModels.CheckoutViewModel
+@using BrasilBurger.Models.Enums
+
+@{
+    ViewData["Title"] = "Checkout";
+    var quartiers = ViewBag.Quartiers as List<BrasilBurger.Models.Quartier> ?? new List<BrasilBurger.Models.Quartier>();
+}
+
+<div class="container py-5">
+    <h2 class="fw-bold mb-4">Livraison & Récapitulatif</h2>
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["error"]</div>
+    }
+
+    @* Afficher clairement les erreurs de validation (sinon l'utilisateur pense que la page "ne fait rien") *@
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @Html.ValidationSummary(excludePropertyErrors: false)
+        </div>
+    }
+
+    <form method="post" asp-controller="Checkout" asp-action="Index">
+        @Html.AntiForgeryToken()
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="checkout-card">
+                    <div class="checkout-header">
+                        <h5 class="mb-0">Mode de service</h5>
+                    </div>
+                    <div class="p-4">
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            @* Important: ne pas "forcer" SUR_PLACE, sinon en cas d'erreur de validation le choix LIVRAISON est perdu *@
+                            <select class="form-select" asp-for="TypeLivraison" id="typeLivraison">
+                                <option value="SUR_PLACE">Sur place</option>
+                                <option value="A_EMPORTER">À emporter</option>
+                                <option value="LIVRAISON">Livraison</option>
+                            </select>
+                            <span class="text-danger">@Html.ValidationMessageFor(m => m.TypeLivraison)</span>
+                        </div>
+
+                        <div id="blocLivraison" style="display:none;">
+                            <div class="mb-3">
+                                <label class="form-label">Quartier</label>
+                                @* asp-for pour conserver la sélection après un postback invalide *@
+                                <select class="form-select" asp-for="QuartierId" id="quartierId">
+                                    <option value="">-- Sélectionner --</option>
+                                    @foreach (var q in quartiers)
+                                    {
+                                        <option value="@q.Id">@q.Nom</option>
+                                    }
+                                </select>
+                                <span class="text-danger">@Html.ValidationMessageFor(m => m.QuartierId)</span>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Adresse</label>
+                                <input class="form-control" asp-for="AdresseLivraison" id="adresseLivraison" placeholder="Ex: Ouakam, derrière la station..." />
+                                <span class="text-danger">@Html.ValidationMessageFor(m => m.AdresseLivraison)</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Notes (optionnel)</label>
+                            <textarea class="form-control" asp-for="Notes" rows="2" placeholder="Ex: appeler avant d'arriver"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="summary-card">
+                    <h5 class="mb-4">Récapitulatif</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Sous-total</span>
+                        <span class="fw-semibold" id="sousTotal">@Model.SousTotal.ToString("N0") FCFA</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Frais de livraison</span>
+                        <span class="fw-semibold" id="fraisLivraison">@Model.FraisLivraison.ToString("N0") FCFA</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0">Total</span>
+                        <span class="h4 text-brasil mb-0" id="total">@Model.Total.ToString("N0") FCFA</span>
+                    </div>
+
+                    <input type="hidden" name="SousTotal" value="@Model.SousTotal" />
+                    <input type="hidden" name="FraisLivraison" id="fraisHidden" value="@Model.FraisLivraison" />
+                    <input type="hidden" name="Total" id="totalHidden" value="@Model.Total" />
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-brasil btn-lg">Continuer vers paiement</button>
+                    </div>
+                    <p class="text-muted-brasil small mt-3 mb-0">Le paiement se fait via Wave ou Orange Money.</p>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    (function () {
+        const typeSelect = document.getElementById('typeLivraison');
+        const blocLivraison = document.getElementById('blocLivraison');
+        const quartierId = document.getElementById('quartierId');
+        const fraisEl = document.getElementById('fraisLivraison');
+        const fraisHidden = document.getElementById('fraisHidden');
+        const totalEl = document.getElementById('total');
+        const totalHidden = document.getElementById('totalHidden');
+        const sousTotal = parseFloat('@Model.SousTotal');
+        const initialFrais = parseFloat('@Model.FraisLivraison');
+
+        function setFrais(f) {
+            const frais = isNaN(f) ? 0 : f;
+            fraisEl.textContent = frais.toLocaleString('fr-FR') + ' FCFA';
+            fraisHidden.value = frais;
+            const total = sousTotal + frais;
+            totalEl.textContent = total.toLocaleString('fr-FR') + ' FCFA';
+            totalHidden.value = total;
+        }
+
+        function onTypeChange() {
+            const t = typeSelect.value;
+            if (t === 'LIVRAISON') {
+                blocLivraison.style.display = '';
+            } else {
+                blocLivraison.style.display = 'none';
+                quartierId.value = '';
+                setFrais(0);
+            }
+        }
+
+        async function fetchFrais(qId) {
+            if (!qId) { setFrais(0); return; }
+            try {
+                const res = await fetch(`/commande/frais-livraison/${qId}`);
+                const data = await res.json();
+                setFrais(parseFloat(data.frais || 0));
+            } catch {
+                setFrais(0);
+            }
+        }
+
+        typeSelect.addEventListener('change', onTypeChange);
+        quartierId.addEventListener('change', () => fetchFrais(quartierId.value));
+
+        onTypeChange();
+        // Préserver les frais calculés côté serveur en cas d'erreur de validation
+        setFrais(initialFrais);
+        // Si livraison et quartier déjà sélectionné, recalculer depuis le serveur
+        if (typeSelect.value === 'LIVRAISON' && quartierId.value) {
+            fetchFrais(quartierId.value);
+        }
+    })();
+</script>
+}

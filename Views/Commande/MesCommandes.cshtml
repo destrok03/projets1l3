@@ -1,0 +1,85 @@
+@model BrasilBurger.ViewModels.CommandeListViewModel
+@using BrasilBurger.Models.Enums
+@{
+	ViewData["Title"] = "Mes commandes";
+}
+
+<div class="container py-5">
+	<h2 class="fw-bold mb-4">Mes commandes</h2>
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<span class="h5 mb-0">Historique</span>
+		<a href="/catalogue" class="btn btn-outline-secondary">Catalogue</a>
+	</div>
+
+	<form method="get" class="row g-3 mb-4">
+		<div class="col-md-3">
+			<select name="statut" class="form-select">
+				<option value="">-- Tous statuts --</option>
+				@foreach (StatutCommande statut in Enum.GetValues(typeof(StatutCommande)))
+				{
+					if (Model.StatutFilter.HasValue && Model.StatutFilter.Value == statut)
+					{
+						<option value="@statut" selected>@statut.ToString().Replace("_", " ")</option>
+					}
+					else
+					{
+						<option value="@statut">@statut.ToString().Replace("_", " ")</option>
+					}
+				}
+			</select>
+		</div>
+		<div class="col-md-3">
+			<input type="date" name="date" class="form-control" value="@ViewBag.DateFilter" />
+		</div>
+		<div class="col-md-2">
+			<button type="submit" class="btn btn-brasil w-100">Filtrer</button>
+		</div>
+	</form>
+
+	<div class="table-responsive">
+		<table class="table table-bordered align-middle bg-white rounded-3 overflow-hidden">
+			<thead>
+				<tr>
+					<th>Commande</th>
+					<th>Date</th>
+					<th>Statut</th>
+					<th>Total</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				@if (Model.Commandes.Count == 0)
+				{
+					<tr><td colspan="5" class="text-center">Aucune commande trouvée.</td></tr>
+				}
+				else
+				{
+					foreach (var c in Model.Commandes)
+					{
+						<tr>
+							<td>#@c.Id</td>
+							<td>@c.DateCommande.ToString("dd-MM-yyyy HH:mm")</td>
+							<td><span class="badge bg-secondary">@c.Statut.ToString().Replace("_", " ")</span></td>
+							<td class="fw-bold">@c.MontantTotal.ToString("N0") FCFA</td>
+							<td><a href="/commande/detail/@c.Id" class="btn btn-outline-primary btn-sm">Détails</a></td>
+						</tr>
+					}
+				}
+			</tbody>
+		</table>
+	</div>
+
+	@if (Model.NbrePage > 1)
+	{
+		@await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BrasilBurger.ViewModels.PaginationViewModel {
+			NbrePage = Model.NbrePage,
+			PageEncours = Model.PageEncours,
+			ActionName = "MesCommandes",
+			ControllerName = "Commande",
+			QueryParams = new Dictionary<string, string?> {
+				{ "statut", Model.StatutFilter?.ToString() },
+				{ "date", ViewBag.DateFilter as string }
+			}
+		})
+	}
+</div>

@@ -1,0 +1,119 @@
+@model BrasilBurger.ViewModels.PaymentViewModel
+@using BrasilBurger.Models.Enums
+
+@{
+    ViewData["Title"] = "Paiement";
+    var cmd = ViewBag.Commande as BrasilBurger.Models.Commande;
+}
+
+<div class="container py-5">
+    <h2 class="fw-bold mb-4">Paiement</h2>
+
+    @if (TempData["info"] != null)
+    {
+        <div class="alert alert-info">@TempData["info"]</div>
+    }
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["error"]</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="checkout-card">
+                <div class="checkout-header">
+                    <h5 class="mb-0">Récapitulatif commande #@Model.CommandeId</h5>
+                </div>
+                <div class="p-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total à payer</span>
+                        <span class="fw-bold">@Model.Montant.ToString("N0") FCFA</span>
+                    </div>
+                    @if (cmd != null)
+                    {
+                        <div class="text-muted-brasil small">
+                            Statut: <strong>@cmd.Statut</strong>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="summary-card">
+                <h5 class="mb-4">Choisir le mode de paiement</h5>
+
+                <form method="post" asp-controller="Checkout" asp-action="Payment" asp-route-id="@Model.CommandeId">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="CommandeId" value="@Model.CommandeId" />
+                    <input type="hidden" name="Montant" value="@Model.Montant" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Mode de paiement</label>
+                        <div class="payment-modes d-flex gap-3">
+                            <label class="payment-card">
+                                <input type="radio" name="ModePaiement" value="@ModePaiement.WAVE" @(Model.ModePaiement == ModePaiement.WAVE ? "checked" : "") required />
+                                <img src="https://res.cloudinary.com/dnbv97moc/image/upload/v1766605950/Wave_ty9k42.jpg" alt="Wave" style="width:48px;height:48px;" />
+                                <div class="fw-bold mt-2">Wave</div>
+                                <small>Paiement via Wave Money</small>
+                            </label>
+                            <label class="payment-card">
+                                <input type="radio" name="ModePaiement" value="@ModePaiement.ORANGE_MONEY" @(Model.ModePaiement == ModePaiement.ORANGE_MONEY ? "checked" : "") required />
+                                <img src="https://res.cloudinary.com/dnbv97moc/image/upload/v1766605960/orange_money_q7fuqw.jpg" alt="Orange Money" style="width:48px;height:48px;" />
+                                <div class="fw-bold mt-2">Orange Money</div>
+                                <small>Paiement via Orange Money</small>
+                            </label>
+                        </div>
+                        <span class="text-danger">@Html.ValidationMessageFor(m => m.ModePaiement)</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Téléphone</label>
+                        <input class="form-control" name="NumeroTelephone" placeholder="Ex: 77xxxxxxx" required />
+                        <span class="text-danger">@Html.ValidationMessageFor(m => m.NumeroTelephone)</span>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-brasil btn-lg">Payer</button>
+                    </div>
+
+                    <p class="text-muted-brasil small mt-3 mb-0">
+                        Le montant est vérifié côté serveur.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-modes {
+    justify-content: flex-start;
+}
+.payment-card {
+    border: 2px solid #eee;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    min-width: 160px;
+    transition: border 0.2s, background 0.2s;
+    background: #fff;
+    position: relative;
+}
+.payment-card:has(input[type="radio"]:checked) {
+    border: 2px solid orange;
+    background: #fff7ef;
+}
+.payment-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.payment-card img {
+    margin-bottom: 8px;
+}
+</style>

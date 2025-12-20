@@ -18,5 +18,8 @@ namespace BrasilBurger.Models.Enums
         TERMINEE,
         [PgName("ANNULEE")]
         ANNULEE
+        ,
+        [PgName("LIVREE")]
+        LIVREE
     }
 }

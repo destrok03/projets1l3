@@ -62,6 +62,19 @@ namespace BrasilBurger.Controllers
                 commandes = commandes.Where(c => c.Statut == statut.Value).ToList();
             }
 
+            // Filtrer par date si spécifié
+            string dateStr = Request.Query["date"];
+            DateTime? dateFilter = null;
+            if (!string.IsNullOrEmpty(dateStr))
+            {
+                if (DateTime.TryParse(dateStr, out var dateParsed))
+                {
+                    dateFilter = dateParsed.Date;
+                    commandes = commandes.Where(c => c.DateCommande.Date == dateFilter.Value).ToList();
+                }
+            }
+            ViewBag.DateFilter = dateStr;
+
             var totalCount = commandes.Count;
             var items = commandes
                 .Skip((page - 1) * LimitParPage)
@@ -201,12 +214,13 @@ public IActionResult Passer()
             try
             {
                 // Créer la commande
+                // Mapping explicite CommandeFormDto -> CreerCommandeDto
                 var creerCommandeDto = new CreerCommandeDto
                 {
                     TypeLivraison = vm.CommandeForm.TypeLivraison,
                     QuartierId = vm.CommandeForm.QuartierId,
-                    Adresse = vm.CommandeForm.Adresse,
-                    Notes = vm.CommandeForm.Notes
+                    Adresse = string.IsNullOrWhiteSpace(vm.CommandeForm.Adresse) ? null : vm.CommandeForm.Adresse,
+                    Notes = string.IsNullOrWhiteSpace(vm.CommandeForm.Notes) ? null : vm.CommandeForm.Notes
                 };
                 var commande = _commandeService.CreerCommande(clientId.Value, creerCommandeDto, panier.Items);
 
@@ -283,17 +297,30 @@ public IActionResult Passer()
 
             try
             {
-                var paiement = _paiementService.EffectuerPaiement(
-                    vm.PaiementForm.CommandeId,
-                    vm.PaiementForm.ModePaiement,
-                    vm.PaiementForm.NumeroTelephone
-                );
-
-                // Vider le panier après paiement réussi
+                // Simulation du paiement
+                var refPaiement = $"WV{DateTime.Now:yyyyMMddHHmmss}{new Random().Next(10000,99999)}";
+                var paiement = new Paiement
+                {
+                    CommandeId = commande.Id,
+                    ModePaiement = vm.PaiementForm.ModePaiement,
+                    NumeroTelephone = vm.PaiementForm.NumeroTelephone,
+                    ReferenceTransaction = refPaiement,
+                    Montant = commande.MontantTotal,
+                    Statut = "VALIDE",
+                    DatePaiement = DateTime.Now,
+                    CreatedAt = DateTime.Now
+                };
+                _paiementService.CreerPaiement(paiement);
+                _commandeService.ValiderCommande(commande.Id);
                 _panierService.ViderPanier();
 
-                TempData["success"] = "Paiement effectué avec succès ! Votre commande est en cours de préparation.";
-                return RedirectToAction("Confirmation", new { id = commande.Id });
+                var attenteVm = new PaiementViewModel
+                {
+                    Commande = commande,
+                    PaiementForm = vm.PaiementForm
+                };
+                ViewBag.ReferencePaiement = refPaiement;
+                return View("PaiementAttente", attenteVm);
             }
             catch (Exception ex)
             {

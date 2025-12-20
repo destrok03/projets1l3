@@ -9,5 +9,6 @@ namespace BrasilBurger.Services
         Paiement? GetByCommande(int commandeId);
         Paiement EffectuerPaiement(int commandeId, ModePaiement modePaiement, string numeroTelephone);
         bool CommandeEstPayee(int commandeId);
+        Paiement CreerPaiement(Paiement paiement);
     }
 }

@@ -7,6 +7,12 @@ namespace BrasilBurger.Services.Impl
 {
     public class PaiementService : IPaiementService
     {
+        public Paiement CreerPaiement(Paiement paiement)
+        {
+            _context.Paiements.Add(paiement);
+            _context.SaveChanges();
+            return paiement;
+        }
         private readonly BrasilBurgerDbContext _context;
         private readonly ICommandeService _commandeService;
 

@@ -39,7 +39,7 @@
                     @if (Context.Session.GetInt32("ClientId") != null)
                     {
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Commande" asp-action="MesCommandes">Mes Commandes</a>
+                            <a class="nav-link" asp-controller="Orders" asp-action="Index">Mes Commandes</a>
                         </li>
                     }
                 </ul>
@@ -136,7 +136,7 @@
                     <ul class="footer-list">
                         <li><a asp-controller="Home" asp-action="Index">Accueil</a></li>
                         <li><a asp-controller="Catalogue" asp-action="Index">Notre Carte</a></li>
-                        <li><a asp-controller="Commande" asp-action="MesCommandes">Mes Commandes</a></li>
+                        <li><a asp-controller="Orders" asp-action="Index">Mes Commandes</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3">

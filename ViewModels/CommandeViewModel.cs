@@ -20,7 +20,7 @@ namespace BrasilBurger.ViewModels
     public class PasserCommandeViewModel
     {
         public PanierDto Panier { get; set; } = new PanierDto();
-        public CreerCommandeDto CommandeForm { get; set; } = new CreerCommandeDto();
+        public CommandeFormDto CommandeForm { get; set; } = new CommandeFormDto();
         public List<Zone> Zones { get; set; } = new List<Zone>();
         public List<Quartier> Quartiers { get; set; } = new List<Quartier>();
     }

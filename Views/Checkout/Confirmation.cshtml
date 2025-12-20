@@ -1,0 +1,35 @@
+@model BrasilBurger.Models.Commande
+
+@{
+    ViewData["Title"] = "Confirmation";
+}
+
+<div class="container py-5">
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success">@TempData["success"]</div>
+    }
+
+    <div class="summary-card">
+        <h2 class="fw-bold mb-2">Paiement confirmé</h2>
+        <p class="text-muted-brasil mb-4">Votre commande est validée et va être traitée.</p>
+
+        <div class="d-flex justify-content-between mb-2">
+            <span>Commande</span>
+            <span class="fw-semibold">#@Model.Id</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+            <span>Statut</span>
+            <span class="fw-semibold">@Model.Statut</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+            <span>Total</span>
+            <span class="fw-bold">@Model.MontantTotal.ToString("N0") FCFA</span>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <a class="btn btn-brasil" asp-controller="Orders" asp-action="Index">Voir mes commandes</a>
+            <a class="btn btn-outline-secondary" asp-controller="Catalogue" asp-action="Index">Retour au catalogue</a>
+        </div>
+    </div>
+</div>

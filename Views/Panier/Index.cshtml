@@ -78,65 +78,24 @@
             </div>
             <div class="col-lg-4">
                 <div class="summary-card">
-                    <form id="panierForm" method="post" asp-controller="Commande" asp-action="Passer">
-                        <h5 class="mb-4">Récapitulatif</h5>
-                        <input type="hidden" name="ModeService" id="modeServiceInput" value="SUR_PLACE" />
-                        <div class="d-flex justify-content-between mb-3">
-                            <span>Sous-total</span>
-                            <span class="fw-semibold">@Model.Panier.SousTotal.ToString("N0") FCFA</span>
-                        </div>
-                        <div class="mb-4">
-                            <p class="text-muted-brasil mb-2">Mode de service</p>
-                            <div class="delivery-option active" data-type="SUR_PLACE">
-                                <div>
-                                    <strong>Sur place</strong>
-                                    <small>À savourer au restaurant</small>
-                                </div>
-                                <span>0 FCFA</span>
-                            </div>
-                            <div class="delivery-option mt-2" data-type="A_EMPORTER">
-                                <div>
-                                    <strong>À emporter</strong>
-                                    <small>Retirez votre commande</small>
-                                </div>
-                                <span>0 FCFA</span>
-                            </div>
-                            <div class="delivery-option mt-2" data-type="LIVRAISON">
-                                <div>
-                                    <strong>Livraison</strong>
-                                    <small>Frais calculés selon la zone</small>
-                                </div>
-                                <span id="fraisLivraisonPreview">À définir</span>
-                                <div id="zone-livraison-select" class="mt-2" style="display:none;">
-                                    <label for="quartierSelect" class="form-label">Choisissez votre quartier</label>
-                                    <select id="quartierSelect" name="quartierId" class="form-select">
-                                        <option value="">-- Sélectionner un quartier --</option>
-                                        @foreach (var quartier in ViewBag.Quartiers ?? new
-                                                                            List<BrasilBurger.Models.Quartier>())
-                                        {
-                                            <option value="@quartier.Id">@quartier.Nom</option>
-                                        }
-                                        <option value="autre">Autre quartier...</option>
-                                    </select>
-                                    <input type="text" id="autreQuartierInput" name="autreQuartier"
-                                        class="form-control mt-2" placeholder="Saisissez votre quartier"
-                                        style="display:none;" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted-brasil">Livraison estimée</span>
-                            <span class="fw-semibold">30 min</span>
-                        </div>
-                        <div class="total-line">
-                            <span class="h5 mb-0">Total</span>
-                            <span class="h4 text-brasil mb-0" id="totalPanier">@Model.Panier.Total.ToString("N0")
-                                FCFA</span>
-                        </div>
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-brasil btn-lg">Passer au paiement</button>
-                        </div>
-                    </form>
+                    <h5 class="mb-4">Récapitulatif</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Sous-total</span>
+                        <span class="fw-semibold">@Model.Panier.SousTotal.ToString("N0") FCFA</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Frais livraison</span>
+                        <span class="fw-semibold">Calculés au checkout</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0">Total</span>
+                        <span class="h4 text-brasil mb-0">@Model.Panier.SousTotal.ToString("N0") FCFA</span>
+                    </div>
+                    <div class="d-grid mt-4">
+                        <a class="btn btn-brasil btn-lg" asp-controller="Checkout" asp-action="Index">Commander</a>
+                    </div>
+                    <p class="text-muted-brasil small mt-3 mb-0">Paiement sécurisé via Wave ou Orange Money</p>
                 </div>
             </div>
         </div>
@@ -151,107 +110,3 @@
         </div>
     }
 </div>
-@section Scripts {
-    <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const panierForm = document.getElementById('panierForm');
-    const totalPanierEl = document.getElementById('totalPanier');
-    const fraisLivraisonPreview = document.getElementById('fraisLivraisonPreview');
-    const zoneLivraison = document.getElementById('zone-livraison-select');
-    const autreQuartierInput = document.getElementById('autreQuartierInput');
-    const modeServiceInput = document.getElementById('modeServiceInput');
-    const quartierSelect = document.getElementById('quartierSelect');
-
-    const sousTotal = parseInt('@Model.Panier.SousTotal', 10);
-    const totalInitial = parseInt('@Model.Panier.Total', 10);
-
-    let quartierValide = true; // true par défaut
-
-    function updateTotal(total) {
-        totalPanierEl.innerText = (total || totalInitial).toLocaleString('fr-FR') + ' FCFA';
-    }
-
-    // Clic sur les modes de service
-    document.querySelectorAll('.delivery-option').forEach(option => {
-        option.addEventListener('click', () => {
-            document.querySelectorAll('.delivery-option').forEach(o => o.classList.remove('active'));
-            option.classList.add('active');
-            modeServiceInput.value = option.dataset.type;
-
-            if (option.dataset.type === 'LIVRAISON') {
-                zoneLivraison.style.display = '';
-                quartierValide = false; // par défaut, à valider
-            } else {
-                zoneLivraison.style.display = 'none';
-                autreQuartierInput.style.display = 'none';
-                fraisLivraisonPreview.innerText = 'À définir';
-                updateTotal(totalInitial);
-                quartierValide = true;
-            }
-        });
-    });
-
-    // Sélection quartier connu
-    quartierSelect.addEventListener('change', function (e) {
-        if (e.target.value === 'autre') {
-            autreQuartierInput.style.display = '';
-            fraisLivraisonPreview.innerText = '0';
-            updateTotal(sousTotal);
-            quartierValide = false;
-        } else if (e.target.value) {
-            autreQuartierInput.style.display = 'none';
-            fetch(`/commande/frais-livraison/${e.target.value}`)
-                .then(r => r.json())
-                .then(data => {
-                    const frais = parseInt(data.frais || 0, 10);
-                    fraisLivraisonPreview.innerText = frais.toLocaleString('fr-FR') + ' FCFA';
-                    updateTotal(sousTotal + frais);
-                    quartierValide = (data.frais !== undefined && data.frais != null);
-                });
-        } else {
-            autreQuartierInput.style.display = 'none';
-            fraisLivraisonPreview.innerText = '0';
-            updateTotal(sousTotal);
-            quartierValide = false;
-        }
-    });
-
-    // Autre quartier
-    autreQuartierInput.addEventListener('input', function (e) {
-        const nomQuartier = e.target.value.trim();
-        if (nomQuartier.length > 2) {
-            fetch(`/commande/frais-livraison-autre?nomQuartier=${encodeURIComponent(nomQuartier)}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.frais || data.frais == 0) {
-                        // Quartier non trouvé
-                        fraisLivraisonPreview.innerText = '0';
-                        updateTotal(sousTotal);
-                        quartierValide = false;
-                    } else {
-                        const frais = parseInt(data.frais, 10);
-                        fraisLivraisonPreview.innerText = frais.toLocaleString('fr-FR') + ' FCFA';
-                        updateTotal(sousTotal + frais);
-                        quartierValide = true;
-                    }
-                });
-        } else {
-            fraisLivraisonPreview.innerText = '0';
-            updateTotal(sousTotal);
-            quartierValide = false;
-        }
-    });
-
-    // Bloquer le formulaire si quartier non valide
-    panierForm.addEventListener('submit', function (e) {
-        if (modeServiceInput.value === 'LIVRAISON' && !quartierValide) {
-            e.preventDefault();
-            alert("nous livrons pas dans ce quartier . Veuillez choisir un quartier  plus proche ou un autre mode de service.");
-        }
-    });
-
-    // Initialisation
-    updateTotal(totalInitial);
-});
-</script>
-}

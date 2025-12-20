@@ -1,0 +1,105 @@
+@model List<BrasilBurger.Models.Commande>
+
+@{
+    ViewData["Title"] = "Mes commandes";
+}
+
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Mes commandes</h2>
+        <a class="btn btn-outline-secondary" asp-controller="Catalogue" asp-action="Index">Catalogue</a>
+    </div>
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <select name="statut" class="form-select">
+                <option value="">-- Tous statuts --</option>
+                @foreach (var statut in Enum.GetValues(typeof(BrasilBurger.Models.Enums.StatutCommande)))
+                {
+                    if ((ViewBag.StatutFilter as string) == statut.ToString())
+                    {
+                        <option value="@statut" selected>@statut.ToString().Replace("_", " ")</option>
+                    }
+                    else
+                    {
+                        <option value="@statut">@statut.ToString().Replace("_", " ")</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="date" class="form-control" value="@ViewBag.DateFilter" />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-brasil w-100">Filtrer</button>
+        </div>
+    </form>
+
+    @if (TempData["info"] != null)
+    {
+        <div class="alert alert-info">@TempData["info"]</div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <div class="summary-card text-center">
+            <p class="text-muted-brasil mb-0">Aucune commande pour le moment.</p>
+        </div>
+    }
+    else
+    {
+        <div class="checkout-card">
+            <div class="checkout-header">
+                <h5 class="mb-0">Historique</h5>
+            </div>
+            <div class="table-responsive p-4">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Commande</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in Model)
+                        {
+                            <tr>
+                                <td>#@c.Id</td>
+                                <td>@c.DateCommande.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td><span class="badge bg-secondary">@c.Statut</span></td>
+                                <td class="text-end fw-semibold">@c.MontantTotal.ToString("N0") FCFA</td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-primary" asp-controller="Orders" asp-action="Details" asp-route-id="@c.Id">Détails</a>
+                                    @if (c.Paiement == null)
+                                    {
+                                        <a class="btn btn-sm btn-brasil ms-2" asp-controller="Checkout" asp-action="Payment" asp-route-id="@c.Id">Payer</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Pagination -->
+        @if (ViewBag.NbrePage != null && (int)ViewBag.NbrePage > 1)
+        {
+            <nav aria-label="Pagination">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= (int)ViewBag.NbrePage; i++)
+                    {
+                        var statutFilter = ViewBag.StatutFilter as string;
+                        var dateFilter = ViewBag.DateFilter as string;
+                        <li class="page-item @(i == (int)ViewBag.PageEncours ? "active" : "")">
+                            <a class="page-link" href="?page=@i&statut=@statutFilter&date=@dateFilter">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+</div>
