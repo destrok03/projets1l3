@@ -1,0 +1,411 @@
+<style>
+    .menu-badge {
+        display: inline-block;
+        background: #e6f7ee;
+        color: #1dbf73;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 4px 16px;
+        font-size: 1em;
+        margin-bottom: 10px;
+    }
+    .menu-compo-list {
+        background: #fafbfc;
+        border-radius: 12px;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+    .menu-compo-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        background: #fff;
+    }
+    .menu-compo-item:last-child {
+        border-bottom: none;
+    }
+    .menu-compo-img {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+        margin-right: 16px;
+    }
+    .menu-compo-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .menu-compo-type {
+        font-size: 0.95em;
+        color: #888;
+        margin-left: 4px;
+    }
+    .menu-compo-price {
+        color: #ff8000;
+        font-weight: 700;
+        font-size: 1.1em;
+        min-width: 80px;
+        text-align: right;
+    }
+    .menu-total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+        font-size: 1.2em;
+        border-top: 2px solid #eee;
+        padding: 18px 0 0 0;
+        margin-top: 10px;
+    }
+    .btn-menu-panier {
+        background: #ff8000;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1em;
+        font-weight: 600;
+        width: 100%;
+        padding: 16px 0;
+        margin-top: 18px;
+        transition: background 0.2s;
+    }
+    .btn-menu-panier:hover {
+        background: #e06d00;
+    }
+</style>
+<style>
+    /*.complement-btn {
+        display: flex;
+        align-items: center;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        padding: 12px 18px;
+        background: #fff;
+        cursor: pointer;
+        margin-bottom: 10px;
+        margin-right: 12px;
+        min-width: 180px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        position: relative;
+    }*/
+    .complement-btn {
+     display: flex;
+        align-items: center;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        padding: 12px 18px;
+        background: #fff;
+        cursor: pointer;
+        margin-bottom: 10px;
+        margin-right: 12px;
+        min-width: 180px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        position: relative;
+}
+
+/* Très important : les enfants ne doivent PAS capter le clic */
+.complement-btn * {
+    pointer-events: none;
+}
+    .complement-btn.selected {
+        border-color: #ff8000;
+        box-shadow: 0 0 0 2px #ff800033;
+        background: #fff7f0;
+    }
+    .complement-btn .complement-img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        margin-right: 10px;
+    }
+    .complement-btn .checkmark {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        color: #ff8000;
+        font-size: 1.3em;
+        display: none;
+        background: #fff7f0;
+        border-radius: 50%;
+    }
+    .complement-btn.selected .checkmark {
+        display: block;
+    }
+    .complement-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+   
+</style>
+
+@model BrasilBurger.ViewModels.ProduitDetailViewModel
+@{
+    ViewData["Title"] = Model.Produit.Nom;
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Accueil</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Catalogue" asp-action="Index">Catalogue</a></li>
+            <li class="breadcrumb-item active">@Model.Produit.Nom</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Image du produit -->
+        <div class="col-lg-5 mb-4">
+            <div class="card border-0 shadow">
+                @if (!string.IsNullOrEmpty(Model.Produit.Image))
+                {
+                    <img src="@Model.Produit.Image" class="card-img-top" alt="@Model.Produit.Nom" style="max-height: 400px; object-fit: cover;">
+                }
+                else
+                {
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 400px;">
+                        <i class="fas fa-hamburger fa-5x text-white-50"></i>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Détails du produit -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow h-100">
+                <div class="card-body">
+                    <!-- Badge type -->
+                    <span class="badge mb-3 
+                        @(Model.Produit.TypeProduit == TypeProduit.BURGER ? "bg-danger" : 
+                          Model.Produit.TypeProduit == TypeProduit.MENU ? "bg-success" : "bg-info")">
+                        @switch (Model.Produit.TypeProduit)
+                        {
+                            case TypeProduit.BURGER:
+                                <text>🍔 Burger</text>
+                                break;
+                            case TypeProduit.MENU:
+                                <text>🍟 Menu</text>
+                                break;
+                            case TypeProduit.COMPLEMENT:
+                                <text>🥤 Complément</text>
+                                break;
+                        }
+                    </span>
+
+                    <h1 class="fw-bold mb-3">@Model.Produit.Nom</h1>
+
+                    @if (!string.IsNullOrEmpty(Model.Produit.Description))
+                    {
+                        <p class="lead text-muted">@Model.Produit.Description</p>
+                    }
+
+                    @* Ingrédients pour les burgers *@
+                    @if (Model.Produit.TypeProduit == TypeProduit.BURGER && !string.IsNullOrEmpty(Model.Produit.Ingredients))
+                    {
+                        <div class="mb-3">
+                            <h6 class="fw-bold"><i class="fas fa-list-ul me-2"></i>Ingrédients</h6>
+                            <p class="text-muted">@Model.Produit.Ingredients</p>
+                        </div>
+                    }
+
+                    @* Composition pour les menus *@
+                    @if (Model.Produit.TypeProduit == TypeProduit.MENU)
+                    {
+                        <div class="mb-3">
+                            <span class="menu-badge">Menu Complet</span>
+                            <h6 class="fw-bold mt-2 mb-3">Ce menu contient</h6>
+                            <div class="menu-compo-list">
+                                @foreach (var composant in Model.MenuComposants)
+                                {
+                                    <div class="menu-compo-item">
+                                        <div class="menu-compo-info">
+                                            <img src="@composant.Image" alt="@composant.Nom" class="menu-compo-img" />
+                                            <div>
+                                                <div class="fw-bold">@composant.Nom</div>
+                                                <div class="menu-compo-type">
+                                                    @if (composant.TypeProduit == TypeProduit.BURGER)
+                                                    {
+                                                        <span>Burger</span>
+                                                    }
+                                                    else if (composant.TypeComplement == TypeComplement.FRITES)
+                                                    {
+                                                        <span>Frites</span>
+                                                    }
+                                                    else if (composant.TypeComplement == TypeComplement.BOISSON)
+                                                    {
+                                                        <span>Boisson</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="menu-compo-price">@composant.Prix.ToString("N0") FCFA</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Le total est déplacé juste avant le bouton -->
+
+                    <!-- Formulaire d'ajout au panier -->
+                    <form asp-controller="Panier" asp-action="Ajouter" method="post" id="formAjoutPanier">
+                        <input type="hidden" name="produitId" value="@Model.Produit.Id" />
+                        <!-- Quantité -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Quantité</label>
+                            <div class="input-group" style="max-width: 150px;">
+                                <button type="button" class="btn btn-outline-secondary btn-moins">-</button>
+                                <input type="number" name="quantite" value="1" min="1" max="10" 
+                                       class="form-control text-center" id="quantite" autocomplete="off">
+                                <button type="button" class="btn btn-outline-secondary btn-plus">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Sélection des compléments (pour burgers) -->
+                        @if (Model.Produit.TypeProduit == TypeProduit.BURGER)
+                        {
+                            <div class="mb-4">
+                                <h6 class="fw-bold mb-3"><i class="fas fa-plus-circle me-2"></i>Ajouter des frites</h6>
+                                <div class="complement-group mb-3">
+                                    @foreach (var frite in Model.Frites)
+                                    {
+                                        <label class="complement-btn" data-id="@frite.Id">
+                                            <input type="checkbox" name="complementIds" value="@frite.Id" class="d-none" autocomplete="off">
+                                            <img src="@frite.Image" class="complement-img" alt="@frite.Nom" />
+                                            <span>@frite.Nom <span class="text-brasil">+@frite.Prix.ToString("N0") FCFA</span></span>
+                                            <span class="checkmark"><i class="fas fa-check-circle"></i></span>
+                                        </label>
+                                    }
+                                </div>
+                                <h6 class="fw-bold mb-3">Ajouter une boisson</h6>
+                                <div class="complement-group">
+                                    @foreach (var boisson in Model.Boissons)
+                                    {
+                                        <label class="complement-btn" data-id="@boisson.Id">
+                                            <input type="checkbox" name="complementIds" value="@boisson.Id" class="d-none" autocomplete="off">
+                                            <img src="@boisson.Image" class="complement-img" alt="@boisson.Nom" />
+                                            <span>@boisson.Nom <span class="text-brasil">+@boisson.Prix.ToString("N0") FCFA</span></span>
+                                            <span class="checkmark"><i class="fas fa-check-circle"></i></span>
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.Produit.TypeProduit == TypeProduit.MENU)
+                        {
+                            <div class="menu-total-row">
+                                <span>Total du menu</span>
+                                <span class="h2 text-brasil fw-bold" id="totalPrix">@Model.Total.ToString("N0") FCFA</span>
+                            </div>
+                        }
+                        else if (Model.Produit.TypeProduit == TypeProduit.BURGER)
+                        {
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="fw-bold">Total</span>
+                                <span class="h2 text-brasil fw-bold" id="totalPrix">@Model.Total.ToString("N0") FCFA</span>
+                            </div>
+                        }
+                        <button type="submit" class="btn-menu-panier">
+                            <i class="fas fa-cart-plus me-2"></i>Ajouter au panier
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Produits similaires -->
+    @if (Model.ProduitsSimilaires.Any())
+    {
+        <div class="mt-5">
+            <h4 class="fw-bold mb-4"><i class="fas fa-th-large text-warning me-2"></i>Produits similaires</h4>
+            <div class="row g-4">
+                @foreach (var produit in Model.ProduitsSimilaires)
+                {
+                    <div class="col-md-6 col-lg-3">
+                        <partial name="_ProduitCard" model="produit" />
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+$(document).ready(function () {
+
+    /* ==============================
+       Gestion de la quantité
+    ============================== */
+    $('.btn-moins').on('click', function () {
+        var input = $('#quantite');
+        var val = parseInt(input.val(), 10) || 1;
+        if (val > 1) input.val(val - 1);
+        updateTotal();
+    });
+
+    $('.btn-plus').on('click', function () {
+        var input = $('#quantite');
+        var val = parseInt(input.val(), 10) || 1;
+        if (val < 10) input.val(val + 1);
+        updateTotal();
+    });
+
+    $('#quantite').on('input', function () {
+        updateTotal();
+    });
+
+    /* ==============================
+       Compléments : LOGIQUE PROPRE
+       (on laisse le <label> faire)
+    ============================== */
+    $('.complement-btn input[type=checkbox]').on('change', function () {
+        $(this).closest('.complement-btn')
+               .toggleClass('selected', this.checked);
+        updateTotal();
+    });
+
+    /* ==============================
+       Calcul du total
+    ============================== */
+    function updateTotal() {
+        var base = parseInt('@Model.Produit.Prix', 10) || 0;
+        var total = base;
+
+        $('input[type=checkbox][name=complementIds]:checked').each(function () {
+            var prixText = $(this)
+                .closest('label')
+                .find('span.text-brasil')
+                .text()
+                .replace(/[^0-9]/g, '');
+
+            var prix = parseInt(prixText, 10);
+            if (!isNaN(prix)) total += prix;
+        });
+
+        var quantite = parseInt($('#quantite').val(), 10) || 1;
+        total = total * quantite;
+
+        $('#totalPrix').text(
+            total.toLocaleString('fr-FR') + ' FCFA'
+        );
+    }
+
+    /* ==============================
+       Initialisation à l'ouverture
+    ============================== */
+    $('.complement-btn input[type=checkbox]').each(function () {
+        $(this).closest('.complement-btn')
+               .toggleClass('selected', this.checked);
+    });
+
+    updateTotal();
+
+});
+</script>
+}

@@ -1,0 +1,104 @@
+@model PaiementViewModel
+@{
+    ViewData["Title"] = "Paiement";
+}
+
+<div class="container py-5">
+    <a asp-controller="Panier" asp-action="Index" class="link-back mb-4 d-inline-flex"><i class="fas fa-arrow-left"></i> Retour au panier</a>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="summary-card sticky-top" style="top: 100px;">
+                <h5 class="mb-4">Commande #@Model.Commande.Id</h5>
+                @foreach (var ligne in Model.Commande.Lignes)
+                {
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>@ligne.Produit?.Nom </span>
+                        <span>@ligne.SousTotal.ToString("N0") FCFA</span>
+                    </div>
+                }
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total</span>
+                    <span>@((Model.Commande.MontantTotal + Model.Commande.FraisLivraison).ToString("N0")) FCFA</span>
+                </div>
+                @if (Model.Commande.FraisLivraison > 0)
+                {
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Frais de livraison</span>
+                        <span>@Model.Commande.FraisLivraison.ToString("N0") FCFA</span>
+                    </div>
+                }
+                <hr>
+                <div class="total-line">
+                    <span class="h5 mb-0">Total à payer</span>
+                    <span class="h4 text-brasil mb-0">@Model.Commande.MontantTotal.ToString("N0") FCFA</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="payment-card">
+                <h2 class="fw-bold mb-2">Paiement</h2>
+                <p class="text-muted-brasil mb-4">Finalisez votre commande en toute sécurité.</p>
+
+                <form asp-action="Payer" method="post">
+                    <input type="hidden" asp-for="PaiementForm.CommandeId" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4"></div>
+
+                    <h5 class="fw-semibold mb-3">Mode de paiement</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <input asp-for="PaiementForm.ModePaiement" type="radio" value="WAVE" class="btn-check" id="pay-wave">
+                            <label class="payment-option" for="pay-wave">
+                                <img src="https://res.cloudinary.com/dloadb2bx/image/upload/v1692209731/wave-logo-black_tf4sri.png" alt="Wave" width="48" height="48">
+                                <span>Wave</span>
+                            </label>
+                        </div>
+                        <div class="col-sm-6">
+                            <input asp-for="PaiementForm.ModePaiement" type="radio" value="ORANGE_MONEY" class="btn-check" id="pay-om">
+                            <label class="payment-option" for="pay-om">
+                                <i class="fas fa-mobile-alt fa-2x text-brasil"></i>
+                                <span>Orange Money</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="PaiementForm.NumeroTelephone" class="form-label">Numéro de téléphone *</label>
+                        <input asp-for="PaiementForm.NumeroTelephone" class="form-control form-control-lg" placeholder="77 123 45 67" />
+                        <span asp-validation-for="PaiementForm.NumeroTelephone" class="text-danger small"></span>
+                        <small class="text-muted-brasil">Le numéro associé à votre compte Wave ou Orange Money.</small>
+                    </div>
+
+                    <div class="auth-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Vous recevrez une notification sur votre téléphone pour confirmer le paiement.
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-brasil btn-lg">Payer @Model.Commande.MontantTotal.ToString("N0") FCFA</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+            });
+        });
+
+        const checked = document.querySelector('input[name="PaiementForm.ModePaiement"]:checked');
+        if (checked) {
+            const active = document.querySelector(`label[for="${checked.id}"]`);
+            if (active) active.classList.add('active');
+        }
+    </script>
+}
