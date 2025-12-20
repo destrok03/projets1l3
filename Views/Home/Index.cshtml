@@ -1,0 +1,184 @@
+@model CatalogueViewModel
+@{
+    ViewData["Title"] = "Accueil";
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <div class="hero-badge-wrapper mb-4">
+                    <span class="hero-badge">
+                        <i class="fas fa-star"></i> Le meilleur burger de Dakar
+                    </span>
+                </div>
+                <h1 class="hero-title">
+                    Des burgers<br>
+                    <span class="text-brasil">authentiques</span><br>
+                    à la<br>
+                    brésilienne
+                </h1>
+                <p class="hero-description">
+                    Découvrez nos créations uniques, préparées avec des ingrédients frais et une touche de saveurs brésiliennes. Livraison rapide ou à emporter!
+                </p>
+                <div class="hero-buttons">
+                    <a asp-controller="Catalogue" asp-action="Index" class="btn btn-brasil btn-lg">
+                        Commander maintenant <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                    <a asp-controller="Catalogue" asp-action="Index" class="btn btn-outline-brasil btn-lg">
+                        Voir la carte
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">5000+</span>
+                        <span class="stat-label">Clients satisfaits</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">15+</span>
+                        <span class="stat-label">Variétés de burgers</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">30min</span>
+                        <span class="stat-label">Livraison moyenne</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80" 
+                         alt="Burger Brasil" 
+                         class="hero-image">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Best-sellers Section -->
+@if (Model.Produits.Any())
+{
+    <section class="bestsellers-section py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title-lg">Nos <span class="text-brasil">Best-sellers</span></h2>
+                <p class="section-subtitle">Les favoris de nos clients, préparés avec passion et des ingrédients de qualité premium.</p>
+            </div>
+            <div class="row g-4">
+                @foreach (var produit in Model.Produits.Take(4))
+                {
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <div class="product-card-new">
+                            <div class="product-image-wrapper">
+                                <span class="product-badge">
+                                    @switch (produit.TypeProduit)
+                                    {
+                                        case BrasilBurger.Models.Enums.TypeProduit.BURGER:
+                                            @:Burger
+                                            break;
+                                        case BrasilBurger.Models.Enums.TypeProduit.MENU:
+                                            @:Menu
+                                            break;
+                                        default:
+                                            @:Complément
+                                            break;
+                                    }
+                                </span>
+                                @if (!string.IsNullOrEmpty(produit.Image))
+                                {
+                                    <img src="@produit.Image" alt="@produit.Nom" class="product-image">
+                                }
+                                else
+                                {
+                                    <div class="product-image-placeholder">
+                                        <i class="fas fa-hamburger fa-3x"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-name">@produit.Nom</h3>
+                                <p class="product-description">
+                                    @(string.IsNullOrWhiteSpace(produit.Description) ? "" : produit.Description.Length > 70 ? produit.Description[..70] + "…" : produit.Description)
+                                </p>
+                                <div class="product-footer">
+                                    <span class="product-price">@produit.Prix.ToString("N0") FCFA</span>
+                                    <a asp-controller="Catalogue" asp-action="Ajouter" asp-route-id="@produit.Id" class="btn btn-brasil btn-sm">
+                                        <i class="fas fa-plus me-1"></i> Ajouter
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="text-center mt-5">
+                <a asp-controller="Catalogue" asp-action="Index" class="btn btn-outline-brasil btn-lg">
+                    Voir toute la carte <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Process Section -->
+<section class="process-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title-lg">Comment ça <span class="text-brasil">marche</span> ?</h2>
+            <p class="section-subtitle">Commander chez Brasil Burger, c'est simple comme bonjour!</p>
+        </div>
+        <div class="process-timeline">
+            <div class="row">
+                <div class="col-6 col-lg-3">
+                    <div class="process-step">
+                        <div class="step-icon-wrapper">
+                            <span class="step-number">1</span>
+                            <div class="step-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                        </div>
+                        <h5 class="step-title">Choisissez</h5>
+                        <p class="step-description">Parcourez notre menu et sélectionnez vos burgers préférés</p>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="process-step">
+                        <div class="step-icon-wrapper">
+                            <span class="step-number">2</span>
+                            <div class="step-icon">
+                                <i class="fas fa-concierge-bell"></i>
+                            </div>
+                        </div>
+                        <h5 class="step-title">Nous préparons</h5>
+                        <p class="step-description">Notre équipe prépare votre commande avec soin et amour</p>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="process-step">
+                        <div class="step-icon-wrapper">
+                            <span class="step-number">3</span>
+                            <div class="step-icon">
+                                <i class="fas fa-motorcycle"></i>
+                            </div>
+                        </div>
+                        <h5 class="step-title">Livraison</h5>
+                        <p class="step-description">Récupérez sur place ou faites-vous livrer rapidement</p>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="process-step">
+                        <div class="step-icon-wrapper">
+                            <span class="step-number">4</span>
+                            <div class="step-icon">
+                                <i class="fas fa-smile"></i>
+                            </div>
+                        </div>
+                        <h5 class="step-title">Régalez-vous</h5>
+                        <p class="step-description">Savourez votre burger Brasil et partagez votre expérience</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
