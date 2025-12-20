@@ -1,0 +1,128 @@
+@model CatalogueViewModel
+@{
+    ViewData["Title"] = ViewData["Title"] ?? "Notre Catalogue";
+    var allClass = Model.TypeFilter == null ? "btn btn-brasil" : "btn btn-outline-brasil";
+    var burgerClass = Model.TypeFilter == TypeProduit.BURGER ? "btn btn-brasil" : "btn btn-outline-brasil";
+    var menuClass = Model.TypeFilter == TypeProduit.MENU ? "btn btn-brasil" : "btn btn-outline-brasil";
+    var complementClass = Model.TypeFilter == TypeProduit.COMPLEMENT ? "btn btn-brasil" : "btn btn-outline-brasil";
+
+    var paginationQueryParams = new Dictionary<string, string?>();
+    if (Model.Search != null)
+    {
+        if (Model.Search.TypeProduit.HasValue)
+        {
+            paginationQueryParams["Search.TypeProduit"] = Model.Search.TypeProduit.ToString();
+        }
+        if (!string.IsNullOrEmpty(Model.Search.Nom))
+        {
+            paginationQueryParams["Search.Nom"] = Model.Search.Nom;
+        }
+        if (Model.Search.PrixMin.HasValue)
+        {
+            paginationQueryParams["Search.PrixMin"] = Model.Search.PrixMin.ToString();
+        }
+        if (Model.Search.PrixMax.HasValue)
+        {
+            paginationQueryParams["Search.PrixMax"] = Model.Search.PrixMax.ToString();
+        }
+    }
+}
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">
+            <i class="fas fa-utensils text-warning me-2"></i>@ViewData["Title"]
+        </h2>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form asp-action="Index" asp-controller="Catalogue" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small">Type de produit</label>
+                    <select asp-for="Search!.TypeProduit" class="form-select">
+                        <option value="">Tous les produits</option>
+                        <option value="BURGER">🍔 Burgers</option>
+                        <option value="MENU">🍟 Menus</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label small">Rechercher</label>
+                    <input asp-for="Search!.Nom" class="form-control" placeholder="Nom du produit..." />
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label small">Prix min</label>
+                    <input asp-for="Search!.PrixMin" type="number" class="form-control" placeholder="0" />
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label small">Prix max</label>
+                    <input asp-for="Search!.PrixMax" type="number" class="form-control" placeholder="10000" />
+                </div>
+                
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-brasil w-100">
+                        <i class="fas fa-search me-1"></i>Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Navigation rapide -->
+    <div class="mb-4">
+        <div class="btn-group" role="group">
+            <a asp-controller="Catalogue" asp-action="Index" class="@allClass">
+                Tous
+            </a>
+            <a asp-controller="Catalogue" asp-action="Burgers" class="@burgerClass">
+                🍔 Burgers
+            </a>
+            <a asp-controller="Catalogue" asp-action="Menus" class="@menuClass">
+                🍟 Menus
+            </a>
+        </div>
+    </div>
+
+    <!-- Liste des produits -->
+    @if (Model.Produits.Any())
+    {
+        <div class="row g-4">
+            @foreach (var produit in Model.Produits)
+            {
+                <div class="col-md-6 col-lg-4 col-xl-3">
+                    <partial name="_ProduitCard" model="produit" />
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4">
+            @await Html.PartialAsync("_Pagination", new PaginationViewModel
+            {
+                NbrePage = Model.NbrePage,
+                PageEncours = Model.PageEncours,
+                ActionName = "Index",
+                ControllerName = "Catalogue",
+                QueryParams = paginationQueryParams
+            })
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center py-5">
+            <i class="fas fa-search fa-3x mb-3"></i>
+            <h4>Aucun produit trouvé</h4>
+            <p class="text-muted">Essayez de modifier vos critères de recherche.</p>
+            <a asp-controller="Catalogue" asp-action="Index" class="btn btn-brasil">
+                Voir tous les produits
+            </a>
+        </div>
+    }
+</div>
+<script>
+</script>
