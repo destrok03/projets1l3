@@ -36,16 +36,19 @@ RUN mkdir -p /var/www/html/var /var/www/html/var/cache /var/www/html/var/log /va
     && chmod -R 755 /var/www/html/var || true
 
 # Apache configuration
-RUN echo '<VirtualHost *:80>\n\
-    DocumentRoot /var/www/html/public\n\
-    <Directory /var/www/html/public>\n\
-        AllowOverride All\n\
-        Require all granted\n\
-        FallbackResource /index.php\n\
-    </Directory>\n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+# Write a proper virtual host file using a heredoc and explicit log paths
+RUN cat > /etc/apache2/sites-available/000-default.conf <<'EOF'
+<VirtualHost *:80>
+    DocumentRoot /var/www/html/public
+    <Directory /var/www/html/public>
+        AllowOverride All
+        Require all granted
+        FallbackResource /index.php
+    </Directory>
+    ErrorLog /var/log/apache2/error.log
+    CustomLog /var/log/apache2/access.log combined
+</VirtualHost>
+EOF
 
 # Clear cache and warmup (force production env so dev bundles are not required)
 RUN APP_ENV=prod php bin/console cache:clear --no-debug --env=prod || true
