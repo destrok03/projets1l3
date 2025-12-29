@@ -27,6 +27,10 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
+# Force production environment at runtime (ensure Symfony doesn't load dev bundles)
+ENV APP_ENV=prod
+ENV APP_DEBUG=0
+
 # Install dependencies (don't run composer scripts during build)
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
 
