@@ -1,0 +1,21 @@
+services:
+  - type: web_service
+    name: projets1l3-web
+    env: docker
+    branch: symfony
+    repo: https://github.com/destrok03/projets1l3.git
+    dockerfilePath: Dockerfile
+    plan: starter
+    region: oregon
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: APP_SECRET
+        value: YOUR_PRODUCTION_APP_SECRET
+      - key: DATABASE_URL
+        value: postgresql://USER:PASSWORD@HOST:5432/DBNAME
+      - key: DEFAULT_URI
+        value: https://your-app.onrender.com
+    healthCheckPath: /
+    minInstances: 1
+    maxInstances: 3
