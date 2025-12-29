@@ -30,9 +30,10 @@ COPY . .
 # Install dependencies (don't run composer scripts during build)
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/var \
-    && chmod -R 755 /var/www/html/var
+# Ensure runtime directories exist and set permissions (avoid failure if missing)
+RUN mkdir -p /var/www/html/var /var/www/html/var/cache /var/www/html/var/log /var/www/html/public \
+    && chown -R www-data:www-data /var/www/html/var /var/www/html/public || true \
+    && chmod -R 755 /var/www/html/var || true
 
 # Apache configuration
 RUN echo '<VirtualHost *:80>\n\
