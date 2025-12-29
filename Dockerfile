@@ -34,10 +34,18 @@ ENV APP_DEBUG=0
 # Install dependencies (don't run composer scripts during build)
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
 
+# Ensure environment is compiled for prod and autoload optimized
+RUN composer dump-autoload --optimize || true
+RUN composer dump-env prod --no-interaction || true
+
 # Ensure runtime directories exist and set permissions (avoid failure if missing)
 RUN mkdir -p /var/www/html/var /var/www/html/var/cache /var/www/html/var/log /var/www/html/public \
     && chown -R www-data:www-data /var/www/html/var /var/www/html/public || true \
     && chmod -R 755 /var/www/html/var || true
+
+# Ensure symfony log file exists and owned by www-data
+RUN touch /var/www/html/var/log/prod.log || true \
+    && chown www-data:www-data /var/www/html/var/log/prod.log || true
 
 # Apache configuration
 # Write a proper virtual host file using a heredoc and explicit log paths
