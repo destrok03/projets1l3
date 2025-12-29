@@ -1,0 +1,338 @@
+<div class="commande-details">
+    <!-- Header avec statut -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <h4 class="mb-1">{{ commande.numero }}</h4>
+            <small class="text-muted">{{ commande.dateCommande|date('d/m/Y à H:i') }}</small>
+        </div>
+        <span class="badge-status {{ commande.statutBadgeClass }} fs-6 px-3 py-2">
+            {{ commande.statutLabel }}
+        </span>
+    </div>
+
+    <div class="row g-4">
+        <!-- Infos Client -->
+        <div class="col-md-6">
+            <div class="info-card p-3 bg-light rounded-3">
+                <h6 class="text-muted mb-3">
+                    <i class="fas fa-user me-2"></i>Informations client
+                </h6>
+                <p class="mb-1"><strong>{{ commande.client.nomComplet }}</strong></p>
+                <p class="mb-1">
+                    <i class="fas fa-phone text-muted me-2"></i>{{ commande.client.telephone }}
+                </p>
+                {% if commande.client.email %}
+                <p class="mb-0">
+                    <i class="fas fa-envelope text-muted me-2"></i>{{ commande.client.email }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Infos Paiement & Livraison -->
+        <div class="col-md-6">
+            <div class="info-card p-3 bg-light rounded-3">
+                <h6 class="text-muted mb-3">
+                    <i class="fas fa-truck me-2"></i>Livraison & Paiement
+                </h6>
+                <p class="mb-1">
+                    <span class="badge-status {{ commande.typeLivraisonBadgeClass }}">{{ commande.typeLivraisonLabel }}</span>
+                </p>
+                {% if commande.zone %}
+                <p class="mb-1">
+                    <i class="fas fa-map-marker-alt text-muted me-2"></i>Zone: {{ commande.zone.nom }}
+                </p>
+                {% endif %}
+                {% if commande.livreur %}
+                <p class="mb-1">
+                    <i class="fas fa-motorcycle text-muted me-2"></i>Livreur: {{ commande.livreur.nomComplet }}
+                </p>
+                {% endif %}
+                {% if commande.paiement %}
+                    <p class="mb-0">
+                    <i class="fas fa-credit-card text-muted me-2"></i>
+                    Payé via <strong>{{ commande.paiement.modePaiementLabel }}</strong>
+                    <span class="badge-status success ms-2">Payé</span>
+                </p>
+                {% else %}
+                <p class="mb-0">
+                    <span class="badge-status warn">Non payé</span>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Détails des produits -->
+    <div class="mt-4">
+        <h6 class="text-muted mb-3">
+            <i class="fas fa-shopping-basket me-2"></i>Détail de la commande
+        </h6>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Produit</th>
+                        <th class="text-center">Qté</th>
+                        <th class="text-end">Prix unit.</th>
+                        <th class="text-end">Sous-total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in commande.lignes %}
+                    <tr>
+                        <td>
+                            <strong>{{ ligne.produit.nom }}</strong>
+                            <br>
+                            <small class="text-muted">{{ ligne.produit.typeProduitLabel }}</small>
+                        </td>
+                        <td class="text-center">{{ ligne.quantite }}</td>
+                        <td class="text-end">{{ ligne.prixUnitaire|number_format(0, ',', ' ') }} FCFA</td>
+                        <td class="text-end">{{ ligne.sousTotal|number_format(0, ',', ' ') }} FCFA</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-3">Aucun produit</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    {% if commande.fraisLivraison > 0 %}
+                    <tr>
+                        <td colspan="3" class="text-end">Frais de livraison:</td>
+                        <td class="text-end">{{ commande.fraisLivraison|number_format(0, ',', ' ') }} FCFA</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                        <td class="text-end"><strong class="text-primary fs-5">{{ commande.montantTotal|number_format(0, ',', ' ') }} FCFA</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Notes -->
+    {% if commande.notes %}
+    <div class="mt-3 p-3 bg-warning-subtle rounded-3">
+        <h6 class="text-muted mb-2">
+            <i class="fas fa-sticky-note me-2"></i>Notes
+        </h6>
+        <p class="mb-0">{{ commande.notes }}</p>
+    </div>
+    {% endif %}
+
+    <!-- ALERTE SI NON PAYÉE -->
+    {% if not commande.paiement and commande.statut not in ['TERMINEE', 'ANNULEE'] %}
+    <div class="mt-4 p-3 bg-warning-subtle rounded-3 border border-warning">
+        <h6 class="mb-2 text-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>Commande non payée
+        </h6>
+        <p class="mb-0 small">Cette commande n'a pas encore été payée. Vous ne pouvez pas changer son statut tant que le paiement n'est pas effectué.</p>
+    </div>
+    {% endif %}
+
+    <!-- GESTION DU STATUT - Pour toutes les commandes non terminées/annulées ET PAYÉES -->
+    {% if commande.paiement and commande.statut not in ['TERMINEE', 'ANNULEE'] %}
+    <div class="mt-4 p-3 bg-primary-subtle rounded-3">
+        <h6 class="mb-3">
+            <i class="fas fa-tasks me-2"></i>Changer le statut
+        </h6>
+        
+        <!-- Afficher le flux de statuts -->
+        <div class="d-flex align-items-center mb-3 flex-wrap gap-2">
+            {% set statuts = ['EN_ATTENTE', 'VALIDEE', 'EN_PREPARATION', 'PRETE'] %}
+            {% if commande.typeLivraison == 'LIVRAISON' %}
+                {% set statuts = statuts|merge(['EN_LIVRAISON']) %}
+            {% endif %}
+            {% set statuts = statuts|merge(['TERMINEE']) %}
+            
+            {% for statut in statuts %}
+                {% set isCurrent = commande.statut == statut %}
+                {% set isPast = loop.index0 < statuts|slice(0, loop.index0)|length %}
+                <span class="badge {{ isCurrent ? 'bg-primary' : 'bg-secondary opacity-50' }} px-2 py-1">
+                    {{ statut|replace({'_': ' '}) }}
+                </span>
+                {% if not loop.last %}
+                    <i class="fas fa-arrow-right text-muted small"></i>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="row g-2 align-items-end">
+            <div class="col-8">
+                <select class="form-select" id="statutSelect">
+                    <option value="">-- Choisir le nouveau statut --</option>
+                    {% if commande.statut == 'EN_ATTENTE' %}
+                        <option value="VALIDEE">✓ Valider la commande</option>
+                    {% endif %}
+                    {% if commande.statut == 'VALIDEE' %}
+                        <option value="EN_PREPARATION">🍳 Mettre en préparation</option>
+                    {% endif %}
+                    {% if commande.statut == 'EN_PREPARATION' %}
+                        <option value="PRETE">✅ Commande prête</option>
+                    {% endif %}
+                    {% if commande.statut == 'PRETE' %}
+                        {% if commande.typeLivraison == 'LIVRAISON' %}
+                            <option value="EN_LIVRAISON">🚚 En livraison</option>
+                        {% else %}
+                            <option value="TERMINEE">🎉 Terminer (client servi)</option>
+                        {% endif %}
+                    {% endif %}
+                    {% if commande.statut == 'EN_LIVRAISON' %}
+                        <option value="TERMINEE">🎉 Terminer (livrée)</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-4">
+                <button type="button" class="btn btn-primary w-100" onclick="changerStatut({{ commande.id }})">
+                    <i class="fas fa-check me-1"></i> Appliquer
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Affecter un livreur (seulement pour LIVRAISON sans livreur ET PAYÉE) -->
+    {% if commande.paiement and commande.typeLivraison == 'LIVRAISON' and not commande.livreur and commande.statut not in ['TERMINEE', 'ANNULEE'] %}
+    <div class="mt-4 p-3 bg-info-subtle rounded-3">
+        <h6 class="mb-3">
+            <i class="fas fa-motorcycle me-2"></i>Affecter un livreur
+        </h6>
+        <div class="row g-2 align-items-end">
+            <div class="col-8">
+                <select class="form-select" id="livreurSelect">
+                    <option value="">-- Choisir un livreur --</option>
+                    {% for livreur in livreurs %}
+                    <option value="{{ livreur.id }}">
+                        {{ livreur.nomComplet }} - {{ livreur.telephone }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-4">
+                <button type="button" class="btn btn-info w-100 text-white" onclick="affecterLivreur({{ commande.id }})">
+                    <i class="fas fa-check me-1"></i> Affecter
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Boutons d'action -->
+    <div class="mt-4 d-flex gap-2 justify-content-end flex-wrap">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i> Fermer
+        </button>
+        
+        {% if commande.canBeCancelled %}
+        <button type="button" class="btn btn-outline-danger" onclick="annulerCommande({{ commande.id }})">
+            <i class="fas fa-ban me-1"></i> Annuler
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+async function changerStatut(commandeId) {
+    const statutSelect = document.getElementById('statutSelect');
+    const nouveauStatut = statutSelect.value;
+    
+    if (!nouveauStatut) {
+        alert('Veuillez sélectionner un statut');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/commandes/${commandeId}/statut`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `statut=${nouveauStatut}`
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Erreur lors du changement de statut');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur de connexion');
+    }
+}
+
+async function affecterLivreur(commandeId) {
+    const livreurId = document.getElementById('livreurSelect').value;
+    if (!livreurId) {
+        alert('Veuillez sélectionner un livreur');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/commandes/${commandeId}/affecter-livreur`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `livreur_id=${livreurId}`
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Erreur');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur de connexion');
+    }
+}
+
+async function terminerCommande(commandeId) {
+    if (!confirm('Marquer cette commande comme terminée ?')) return;
+    
+    try {
+        const response = await fetch(`/commandes/${commandeId}/terminer`, { 
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Erreur');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur de connexion');
+    }
+}
+
+async function annulerCommande(commandeId) {
+    if (!confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) return;
+    
+    try {
+        const response = await fetch(`/commandes/${commandeId}/annuler`, { 
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Erreur');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur de connexion');
+    }
+}
+<!-- scripts moved to list page to ensure execution when modal is loaded via AJAX -->

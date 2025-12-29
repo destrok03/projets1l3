@@ -1,0 +1,13 @@
+/* Assets stylesheet - variables and light helpers (admin uses public/css/admin.css)
+   This file kept for potential front-end builds. */
+
+:root {
+    --primary-color: #ff6b35;
+    --secondary-color: #f7931e;
+    --body-bg: #ffffff;
+}
+
+body {
+    background: var(--body-bg);
+    font-family: 'Poppins', sans-serif;
+}

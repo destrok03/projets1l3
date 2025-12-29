@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Facture {{ commande.numero }}</title>
+    <style>
+        body { font-family: Arial, Helvetica, sans-serif; color: #111; margin: 24px; }
+        .header { display:flex; justify-content:space-between; align-items:center; }
+        .company { font-weight:700; font-size:1.1rem; }
+        .meta { text-align:right; }
+        .items { width:100%; border-collapse:collapse; margin-top:20px; }
+        .items th, .items td { border:1px solid #eee; padding:8px; }
+        .total { text-align:right; margin-top:12px; font-weight:700; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <div class="company">Brasil Burger</div>
+            <div>Adresse: Exemple, Ville</div>
+        </div>
+        <div class="meta">
+            <div>Facture: {{ commande.numero }}</div>
+            <div>Date: {{ commande.dateCommande ? commande.dateCommande|date('d/m/Y H:i') : '' }}</div>
+            <div>Client: {{ commande.client.nomComplet }}</div>
+        </div>
+    </div>
+
+    <table class="items">
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th>Quantité</th>
+                <th>Prix</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in commande.lignes %}
+                <tr>
+                    <td>{{ ligne.produit.nom }}</td>
+                    <td>{{ ligne.quantite }}</td>
+                    <td>{{ ligne.prixUnitaire|number_format(0, ',', ' ') }} FCFA</td>
+                    <td>{{ (ligne.prixUnitaire * ligne.quantite)|number_format(0, ',', ' ') }} FCFA</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">Aucun élément</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total">Montant total: {{ commande.montantTotal|number_format(0, ',', ' ') }} FCFA</div>
+
+    <div style="margin-top:40px; font-size:0.9rem; color:#666;">Merci pour votre commande.</div>
+</body>
+</html>

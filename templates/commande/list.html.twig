@@ -1,0 +1,452 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des commandes{% endblock %}
+
+{% block body %}
+<div class="commandes-page">
+    <div class="page-header mb-4">
+        <h1 class="page-title">Gestion des commandes</h1>
+        <p class="text-muted">Gérez et suivez toutes les commandes de vos clients</p>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card border-0 shadow-sm mb-4 filters-card">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end filters-row">
+                {# Recherche supprimée selon demande utilisateur #}
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="">Tous les types</option>
+                        <option value="LIVRAISON" {{ filters.typeLivraison == 'LIVRAISON' ? 'selected' }}>Livraison</option>
+                        <option value="SUR_PLACE" {{ filters.typeLivraison == 'SUR_PLACE' ? 'selected' }}>Sur place</option>
+                        <option value="A_EMPORTER" {{ filters.typeLivraison == 'A_EMPORTER' ? 'selected' }}>À emporter</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Statut</label>
+                    <select name="statut" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option value="EN_ATTENTE" {{ filters.statut == 'EN_ATTENTE' ? 'selected' }}>En attente</option>
+                        <option value="VALIDEE" {{ filters.statut == 'VALIDEE' ? 'selected' }}>Validée</option>
+                        <option value="EN_PREPARATION" {{ filters.statut == 'EN_PREPARATION' ? 'selected' }}>En préparation</option>
+                        <option value="PRETE" {{ filters.statut == 'PRETE' ? 'selected' }}>Prête</option>
+                        <option value="EN_LIVRAISON" {{ filters.statut == 'EN_LIVRAISON' ? 'selected' }}>En livraison</option>
+                        <option value="TERMINEE" {{ filters.statut == 'TERMINEE' ? 'selected' }}>Terminée</option>
+                        <option value="ANNULEE" {{ filters.statut == 'ANNULEE' ? 'selected' }}>Annulée</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Date début</label>
+                    <input type="date" class="form-control" name="dateDebut" value="{{ filters.dateDebut }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Date fin</label>
+                    <input type="date" class="form-control" name="dateFin" value="{{ filters.dateFin }}">
+                </div>
+                <div class="col-md-1 d-grid">
+                    <button type="submit" class="btn btn-primary w-100 h-100">
+                        <i class="fas fa-filter me-1"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des commandes -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <span class="fw-medium">
+                <i class="fas fa-list me-2 text-muted"></i>
+                {{ total }} commande(s) trouvée(s)
+            </span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive p-3">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="border-0">ID</th>
+                            <th class="border-0">Client</th>
+                            <th class="border-0">Type</th>
+                            <th class="border-0">Montant</th>
+                            <th class="border-0">Statut</th>
+                            <th class="border-0">Date</th>
+                            <th class="border-0 text-center">Action rapide</th>
+                            <th class="border-0 text-center col-details">Détails</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for commande in commandes %}
+                        <tr id="row-{{ commande.id }}">
+                            <td data-label="ID">
+                                <span class="fw-medium text-primary">{{ commande.numero }}</span>
+                            </td>
+                            <td data-label="Client">
+                                <div>
+                                    <strong>{{ commande.client.nomComplet }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-phone me-1"></i>{{ commande.client.telephone }}
+                                    </small>
+                                </div>
+                            </td>
+                            <td data-label="Type">
+                                {% if commande.typeLivraison == 'LIVRAISON' %}
+                                    <span class="type-pill type-livraison">{{ commande.typeLivraisonLabel }}</span>
+                                {% elseif commande.typeLivraison == 'SUR_PLACE' %}
+                                    <span class="type-pill type-sur-place">{{ commande.typeLivraisonLabel }}</span>
+                                {% else %}
+                                    <span class="type-pill type-a-emporter">{{ commande.typeLivraisonLabel }}</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Montant">
+                                <strong>{{ commande.montantTotal|number_format(0, ',', ' ') }}</strong> FCFA
+                            </td>
+                            <td data-label="Statut">
+                                <span class="badge-status {{ commande.statutBadgeClass }} rounded-pill px-3 py-2">
+                                    {{ commande.statutLabel }}
+                                </span>
+                            </td>
+                            <td data-label="Date">
+                                <small>{{ commande.dateCommande|date('d/m/Y') }}</small>
+                                <br>
+                                <small class="text-muted">{{ commande.dateCommande|date('H:i') }}</small>
+                            </td>
+                            <td data-label="Action rapide" class="text-center">
+                                {# Vérifier si la commande est payée #}
+                                {% if not commande.paiement %}
+                                    {# NON PAYÉE - Afficher avertissement #}
+                                    <span class="badge-status warn" title="Cette commande n'est pas encore payée">
+                                        Non payé
+                                    </span>
+                                {% else %}
+                                    {# PAYÉE - Bouton d'action rapide selon le statut actuel #}
+                                    {% if commande.statut == 'EN_ATTENTE' %}
+                                        <button class="btn btn-sm btn-success btn-action" 
+                                                data-id="{{ commande.id }}" data-statut="VALIDEE"
+                                                title="Valider cette commande">
+                                            Valider
+                                        </button>
+                                    {% elseif commande.statut == 'VALIDEE' %}
+                                        <button class="btn btn-sm btn-warning btn-action" 
+                                                data-id="{{ commande.id }}" data-statut="EN_PREPARATION"
+                                                title="Commencer la préparation">
+                                            Préparer
+                                        </button>
+                                    {% elseif commande.statut == 'EN_PREPARATION' %}
+                                        <button class="btn btn-sm btn-info text-white btn-action" 
+                                                data-id="{{ commande.id }}" data-statut="PRETE"
+                                                title="Marquer comme prête">
+                                            Prête
+                                        </button>
+                                    {% elseif commande.statut == 'PRETE' %}
+                                        {% if commande.typeLivraison == 'LIVRAISON' %}
+                                            <button class="btn btn-sm btn-primary btn-action" 
+                                                    data-id="{{ commande.id }}" data-statut="EN_LIVRAISON"
+                                                    title="Envoyer en livraison">
+                                                Livrer
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-success btn-action" 
+                                                    data-id="{{ commande.id }}" data-statut="TERMINEE"
+                                                    title="Client servi">
+                                                Terminer
+                                            </button>
+                                        {% endif %}
+                                    {% elseif commande.statut == 'EN_LIVRAISON' %}
+                                        <button class="btn btn-sm btn-success btn-action" 
+                                                data-id="{{ commande.id }}" data-statut="TERMINEE"
+                                                title="Commande livrée">
+                                            Livrée
+                                        </button>
+                                    {% elseif commande.statut == 'TERMINEE' %}
+                                        <span class="badge-status success">Terminée</span>
+                                    {% elseif commande.statut == 'ANNULEE' %}
+                                        <span class="badge-status danger">Annulée</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td data-label="Détails" class="text-center col-details">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Détails actions">
+                                    <button class="icon-btn btn-details" 
+                                            data-commande-id="{{ commande.id }}"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#detailsModal"
+                                            title="Voir détails">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="icon-btn btn-print"
+                                            data-commande-id="{{ commande.id }}"
+                                            title="Imprimer">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                    {% if commande.canBeCancelled %}
+                                    <button class="icon-btn btn-annuler"
+                                            data-commande-id="{{ commande.id }}"
+                                            title="Annuler">
+                                        <i class="fas fa-times text-danger"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                                    <p class="mb-0">Aucune commande trouvée</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        {% if nbrePages > 1 %}
+        <div class="card-footer bg-white border-0 py-3">
+            {% include 'components/pagination.html.twig' with {
+                'nbrePages': nbrePages,
+                'pageEncours': pageEncours,
+                'route': 'app_commande_list'
+            } %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Détails -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Détails de la commande</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailsContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // ACTION RAPIDE - Boutons pour changer le statut
+    document.querySelectorAll('.btn-action').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const commandeId = this.dataset.id;
+            const nouveauStatut = this.dataset.statut;
+            const button = this;
+            
+            // Désactiver le bouton pendant le traitement
+            button.disabled = true;
+            const originalContent = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                const response = await fetch(`/commandes/${commandeId}/statut`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `statut=${nouveauStatut}`
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    // Recharger la page pour voir le nouveau bouton
+                    location.reload();
+                } else {
+                    alert(data.error || 'Erreur lors du changement de statut');
+                    button.disabled = false;
+                    button.innerHTML = originalContent;
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Erreur de connexion');
+                button.disabled = false;
+                button.innerHTML = originalContent;
+            }
+        });
+    });
+
+    // Charger les détails dans le modal
+    document.querySelectorAll('.btn-details').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const commandeId = this.dataset.commandeId;
+            const content = document.getElementById('detailsContent');
+            
+            content.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+            
+            try {
+                const response = await fetch(`/commandes/${commandeId}/details`);
+                content.innerHTML = await response.text();
+            } catch (error) {
+                content.innerHTML = '<div class="alert alert-danger">Erreur de chargement</div>';
+            }
+        });
+    });
+
+    // Annuler commande
+    document.querySelectorAll('.btn-annuler').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            if (!confirm('Voulez-vous vraiment annuler cette commande ?')) return;
+            
+            const commandeId = this.dataset.commandeId;
+            
+            try {
+                const response = await fetch(`/commandes/${commandeId}/annuler`, { 
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Erreur lors de l\'annulation');
+                }
+            } catch (error) {
+                alert('Erreur de connexion');
+            }
+        });
+    });
+
+    // Imprimer / Télécharger la facture — forcer le téléchargement via un lien caché
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-print');
+        if (!btn) return;
+
+        const commandeId = btn.dataset.commandeId;
+
+        // Construire un lien et le cliquer pour forcer le téléchargement
+        const url = `/commandes/${commandeId}/facture`;
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        // `download` aide les navigateurs à forcer le téléchargement (même si Content-Disposition est préférable côté serveur)
+        a.setAttribute('download', '');
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    });
+
+    // Fonctions globales utilisées par le modal (exécutées depuis onclick="...")
+    window.changerStatut = async function(commandeId) {
+        const statutSelect = document.getElementById('statutSelect');
+        const nouveauStatut = statutSelect ? statutSelect.value : '';
+
+        if (!nouveauStatut) {
+            alert('Veuillez sélectionner un statut');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/commandes/${commandeId}/statut`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `statut=${encodeURIComponent(nouveauStatut)}`
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Erreur lors du changement de statut');
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Erreur de connexion');
+        }
+    };
+
+    window.affecterLivreur = async function(commandeId) {
+        const livreurSelect = document.getElementById('livreurSelect');
+        const livreurId = livreurSelect ? livreurSelect.value : '';
+        if (!livreurId) {
+            alert('Veuillez sélectionner un livreur');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/commandes/${commandeId}/affecter-livreur`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `livreur_id=${encodeURIComponent(livreurId)}`
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Erreur');
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Erreur de connexion');
+        }
+    };
+
+    window.terminerCommande = async function(commandeId) {
+        if (!confirm('Marquer cette commande comme terminée ?')) return;
+
+        try {
+            const response = await fetch(`/commandes/${commandeId}/terminer`, { 
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Erreur');
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Erreur de connexion');
+        }
+    };
+
+    window.annulerCommande = async function(commandeId) {
+        if (!confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) return;
+
+        try {
+            const response = await fetch(`/commandes/${commandeId}/annuler`, { 
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Erreur');
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Erreur de connexion');
+        }
+    };
+});
+</script>
+{% endblock %}

@@ -1,0 +1,223 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques{% endblock %}
+
+{% block body %}
+
+<div class="statistiques-page">
+    <div class="d-flex justify-content-between align-items-center page-header mb-4">
+        <div>
+            <h1 class="page-title mb-1">Statistiques du jour</h1>
+            <p class="text-muted mb-0">{{ "now"|date("l d F Y") }}</p>
+        </div>
+        <a href="#" class="btn btn-primary d-flex align-items-center gap-2" style="min-width: 160px;">
+            <i class="fas fa-download"></i> Télécharger
+        </a>
+    </div>
+
+    <!-- KPIs Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card stat-card card-elevated h-100 border-0" style="border-left:4px solid #f59e0b;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted mb-1 small text-uppercase">Commandes en cours</div>
+                            <div class="fw-bold" style="font-size:2.1rem;">{{ stats.commandesEnCours }}</div>
+                        </div>
+                        <div class="stat-icon-box stat-icon-warning ms-2">
+                            <i class="fas fa-spinner fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card stat-card card-elevated h-100 border-0" style="border-left:4px solid var(--success-color);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted mb-1 small text-uppercase">Commandes terminées</div>
+                            <div class="fw-bold" style="font-size:2.1rem;">{{ stats.commandesTerminees }}</div>
+                        </div>
+                        <div class="stat-icon-box stat-icon-success ms-2">
+                            <i class="fas fa-check-circle fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card stat-card card-elevated h-100 border-0" style="border-left:4px solid var(--danger-color);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted mb-1 small text-uppercase">Commandes annulées</div>
+                            <div class="fw-bold" style="font-size:2.1rem;">{{ stats.commandesAnnulees }}</div>
+                        </div>
+                        <div class="stat-icon-box stat-icon-danger ms-2">
+                            <i class="fas fa-times-circle fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card stat-card card-elevated h-100 border-0" style="border-left:4px solid var(--info-color);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted mb-1 small text-uppercase">Recettes du jour</div>
+                            <div class="fw-bold" style="font-size:2.1rem;">{{ stats.recettesJournalieres|number_format(0, ',', ' ') }}</div>
+                            <div class="text-muted" style="font-size:0.95rem;">FCFA</div>
+                        </div>
+                        <div class="stat-icon-box stat-icon-primary ms-2">
+                            <i class="fas fa-money-bill-wave fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row g-4">
+        <!-- Répartition par statut -->
+        <div class="col-lg-6">
+            <div class="card card-elevated border-0 h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <i class="fas fa-chart-pie text-info"></i>
+                        Répartition par statut
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% set totalStatuts = 0 %}
+                    {% for count in stats.statistiquesParStatut %}
+                        {% set totalStatuts = totalStatuts + count %}
+                    {% endfor %}
+                    {% if totalStatuts > 0 %}
+                        {% for statut, count in stats.statistiquesParStatut %}
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="badge-status {% if statut == 'TERMINEE' %}success{% elseif statut == 'ANNULEE' %}danger{% elseif statut == 'EN_LIVRAISON' %}info{% elseif statut == 'PRETE' %}primary{% elseif statut == 'EN_PREPARATION' %}warning{% else %}muted{% endif %}">
+                                        {{ statut|replace({'_': ' '}) }}
+                                    </span>
+                                    <span class="fw-bold">{{ count }}</span>
+                                </div>
+                                <div class="progress" style="height: 8px; border-radius:8px;overflow:hidden;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ (count / totalStatuts * 100)|round }}%; background: {% if statut == 'TERMINEE' %}var(--success-color){% elseif statut == 'ANNULEE' %}var(--danger-color){% elseif statut == 'EN_LIVRAISON' %}var(--info-color){% elseif statut == 'PRETE' %}var(--primary-color){% elseif statut == 'EN_PREPARATION' %}#f59e0b{% else %}#94a3b8{% endif %};"></div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-chart-pie fa-3x mb-3 opacity-25"></i>
+                            <p class="mb-0">Aucune donnée disponible</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Répartition par mode de paiement -->
+        <div class="col-lg-6">
+            <div class="card card-elevated border-0 h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <i class="fas fa-credit-card text-success"></i>
+                        Paiements du jour
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if stats.statistiquesParModePaiement|length > 0 %}
+                        <div class="row g-3">
+                            {% for mode, data in stats.statistiquesParModePaiement %}
+                            <div class="col-12">
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded card-elevated" style="background:#f8fafc;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if mode == 'WAVE' %}
+                                            <div class="icon-circle" style="background:var(--info-color);color:#fff;">
+                                                <i class="fas fa-mobile-alt"></i>
+                                            </div>
+                                        {% elseif mode == 'ORANGE_MONEY' %}
+                                            <div class="icon-circle" style="background:var(--secondary-color);color:#fff;">
+                                                <i class="fas fa-mobile-alt"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="icon-circle" style="background:var(--success-color);color:#fff;">
+                                                <i class="fas fa-money-bill"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold">{{ mode|replace({'_': ' '}) }}</div>
+                                            <div class="text-muted" style="font-size:0.92rem;">{{ data.count }} transaction(s)</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold text-primary" style="font-size:1.15rem;">{{ data.total|number_format(0, ',', ' ') }}</div>
+                                        <div class="text-muted" style="font-size:0.92rem;">FCFA</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-credit-card fa-3x mb-3 opacity-25"></i>
+                            <p class="mb-0">Aucun paiement aujourd'hui</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Weekly summaries removed as requested #}
+
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="card card-elevated border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <i class="fas fa-table text-muted"></i>
+                        Top 5 Produits
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% set topProducts = stats.topProduits|default(stats.topBurgers|default([])) %}
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:60px">#</th>
+                                    <th>Produit</th>
+                                    <th style="width:140px" class="text-center">Quantité</th>
+                                    <th style="width:180px" class="text-end">Revenus</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for produit in topProducts|slice(0,5) %}
+                                    <tr>
+                                        <td>
+                                            <div class="rank-badge {{ loop.index <= 3 ? 'top-3' : '' }}">{{ loop.index }}</div>
+                                        </td>
+                                        <td>{{ produit.nom|default(produit.name|default('—')) }}</td>
+                                        <td class="text-center">{{ produit.quantite|default(produit.totalVentes|default(0)) }}</td>
+                                        <td class="text-end">{{ produit.revenus|default(produit.chiffre|default(produit.total|default(0)))|number_format(0, ',', ' ') }} FCFA</td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">Aucun produit disponible</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Small recap boxes removed as requested #}
+</div>
+{% endblock %}

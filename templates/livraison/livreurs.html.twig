@@ -1,0 +1,141 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des livraisons - Livreurs{% endblock %}
+
+{% block body %}
+<div class="livraison-page">
+    <div class="page-header mb-4">
+        <h1 class="page-title">Gestion des livraisons</h1>
+        <p class="text-muted">Gérez vos zones de livraison et affectez les livreurs aux commandes</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bb-tab-bar mb-4">
+        <a href="{{ path('app_livraison_zones') }}" class="bb-tab-btn">
+            <i class="fas fa-map-marker-alt me-2"></i> Zones
+        </a>
+        <a href="{{ path('app_livraison_livreurs') }}" class="bb-tab-btn active">
+            <i class="fas fa-motorcycle me-2"></i> Livreurs
+        </a>
+    </div>
+
+    <!-- Section title centered like reference -->
+    <div class="livreur-section-title">Livreurs</div>
+
+    <div class="livreur-grid">
+        {% for livreur in livreurs %}
+        <div class="livreur-card">
+            <div class="d-flex align-items-start">
+                <div class="livreur-avatar avatar-circle {{ livreur.disponible ? 'bg-success' : 'bg-secondary' }} me-3">
+                    <i class="fas fa-motorcycle"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <strong>{{ livreur.nomComplet }}</strong>
+                        {% if not livreur.actif %}
+                            <span class="badge-status danger">Inactif</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-muted small">{{ livreur.telephone }}</div>
+                    <div class="livreur-tags">
+                        {% for zone in livreur.zones %}
+                            <span class="badge-status">{{ zone.nom }}</span>
+                        {% else %}
+                            <span class="text-muted">Aucune zone</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-column align-items-end">
+                <div>
+                    <label class="switch">
+                        <input class="toggle-disponibilite" type="checkbox" data-livreur-id="{{ livreur.id }}" data-url="{{ path('app_livreur_toggle', {'id': livreur.id}) }}" {{ livreur.disponible ? 'checked' : '' }} />
+                        <span class="slider"></span>
+                    </label>
+                    <small class="availability-label {{ livreur.disponible ? 'livreur-available' : 'livreur-unavailable' }}">
+                        {{ livreur.disponible ? 'Disponible' : 'Indisponible' }}
+                    </small>
+                </div>
+                <div class="livreur-actions mt-2">
+                    <a class="btn-edit" title="Voir commandes" href="{{ path('app_commande_list', {'livreur': livreur.id}) }}"><i class="fas fa-list"></i></a>
+                    <button class="btn-delete" title="Supprimer" data-url="{{ path('app_livreur_delete', {'id': livreur.id}) }}" data-token="{{ csrf_token('delete-livreur' ~ livreur.id) }}"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted w-100">
+            <i class="fas fa-motorcycle fa-3x mb-3 opacity-25"></i>
+            <p class="mb-0">Aucun livreur enregistré</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.toggle-disponibilite').forEach(toggle => {
+        toggle.addEventListener('change', async function() {
+            const livreurId = this.dataset.livreurId;
+            const row = this.closest('.livreur-card');
+            const label = row ? row.querySelector('.availability-label') : null;
+            const url = this.dataset.url;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    if (data.disponible) {
+                        if (label) {
+                            label.textContent = 'Disponible';
+                            label.classList.remove('text-muted');
+                            label.classList.add('text-success');
+                        }
+                    } else {
+                        if (label) {
+                            label.textContent = 'Indisponible';
+                            label.classList.remove('text-success');
+                            label.classList.add('text-muted');
+                        }
+                    }
+                } else {
+                    this.checked = !this.checked;
+                    alert('Erreur lors de la mise à jour');
+                }
+            } catch (error) {
+                this.checked = !this.checked;
+                alert('Erreur de connexion');
+            }
+        });
+
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const url = this.dataset.url;
+                    const token = this.dataset.token;
+                    if (!confirm('Supprimer ce livreur ?')) return;
+                    try {
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: `_token=${encodeURIComponent(token)}`
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            const card = this.closest('.livreur-card');
+                            if (card) card.remove();
+                            // optional flash
+                        } else {
+                            alert(data.error || 'Erreur lors de la suppression');
+                        }
+                    } catch (e) {
+                        alert('Erreur de connexion');
+                    }
+                });
+            });
+    });
+});
+</script>
+{% endblock %}

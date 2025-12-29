@@ -1,0 +1,260 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des livraisons - Zones{% endblock %}
+
+{% block body %}
+<div class="livraison-page">
+    <div class="page-header mb-4">
+        <h1 class="page-title">Gestion des livraisons</h1>
+        <p class="text-muted">Gérez vos zones de livraison et affectez les livreurs aux commandes</p>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" href="{{ path('app_livraison_zones') }}">
+                <i class="fas fa-map-marker-alt me-2"></i>Zones
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ path('app_livraison_livreurs') }}">
+                <i class="fas fa-motorcycle me-2"></i>Livreurs
+            </a>
+        </li>
+    </ul>
+
+    <div class="row g-4">
+        <!-- Liste des zones -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map me-2 text-muted"></i>
+                        Zones de livraison
+                    </h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#commandesParZoneModal">
+                        <i class="fas fa-truck me-1"></i>
+                        Gérer les livraisons
+                        {% set totalPending = 0 %}
+                        {% for data in commandesParZone %}
+                            {% set totalPending = totalPending + data.count %}
+                        {% endfor %}
+                        {% if totalPending > 0 %}
+                        <span class="badge-status danger ms-1">{{ totalPending }}</span>
+                        {% endif %}
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">Zone</th>
+                                    <th class="border-0">Frais</th>
+                                    <th class="border-0">Quartiers</th>
+                                    <th class="border-0 text-center">Livreurs</th>
+                                    <th class="border-0 text-center">Statut</th>
+                                    <th class="border-0 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for zone in zones %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ zone.nom }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="fw-medium text-primary">{{ zone.prixLivraison|number_format(0, ',', ' ') }} FCFA</span>
+                                    </td>
+                                    <td>
+                                        {% for quartier in zone.quartiers %}
+                                            <span class="badge-status" style="background:#f1f5f9;color:#0f1724;">{{ quartier.nom }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge-status info">{{ zone.livreurs|length }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {# Statut toggle #}
+                                        <div class="toggle-switch {{ (zone.livreurs|length > 0) ? 'active' : '' }}" data-zone-id="{{ zone.id }}" title="{{ (zone.livreurs|length > 0) ? 'Active' : 'Inactive' }}">
+                                            <div class="knob"></div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-icons">
+                                            <button class="btn edit" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn delete" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        Aucune zone configurée
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Résumé -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">Résumé des livraisons</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Zones actives</span>
+                        <strong>{{ zones|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Commandes en attente</span>
+                        <strong class="text-warning">
+                            {% set totalPending = 0 %}
+                            {% for data in commandesParZone %}
+                                {% set totalPending = totalPending + data.count %}
+                            {% endfor %}
+                            {{ totalPending }}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Commandes par zone -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0">
+                        <i class="fas fa-clock text-warning me-2"></i>
+                        En attente par zone
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for zoneId, data in commandesParZone %}
+                        <div class="d-flex justify-content-between align-items-center py-2 {{ not loop.last ? 'border-bottom' : '' }}">
+                            <span>{{ data.zoneName }}</span>
+                                            <span class="badge-status warn">{{ data.count }}</span>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">Aucune commande en attente</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Commandes par Zone -->
+<div class="modal fade" id="commandesParZoneModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-truck me-2"></i>
+                    Commandes à livrer par zone
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% for zoneId, data in commandesParZone %}
+                <div class="zone-group mb-4">
+                    <h6 class="bg-light p-2 rounded mb-3">
+                        <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                        {{ data.zoneName }}
+                        <span class="badge bg-primary ms-2">{{ data.count }} commande(s)</span>
+                    </h6>
+                    
+                    {% for commande in data.commandes %}
+                    <div class="commande-item d-flex justify-content-between align-items-center p-3 border rounded mb-2">
+                        <div>
+                            <strong>{{ commande.numero }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                {{ commande.client.nomComplet }} - {{ commande.montantTotal|number_format(0, ',', ' ') }} FCFA
+                            </small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge {{ commande.statutBadgeClass }}">{{ commande.statutLabel }}</span>
+                            <select class="form-select form-select-sm" style="width: 150px;" 
+                                    onchange="affecterLivreurCommande({{ commande.id }}, this.value)">
+                                <option value="">Affecter livreur</option>
+                                {% for livreur in data.zone.livreursDisponibles %}
+                                <option value="{{ livreur.id }}">{{ livreur.nomComplet }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-check-circle fa-3x mb-3 text-success opacity-50"></i>
+                    <p class="mb-0">Aucune commande en attente de livraison</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+async function affecterLivreurCommande(commandeId, livreurId) {
+    if (!livreurId) return;
+    
+    try {
+        const response = await fetch('/livraison/affecter', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `commande_id=${commandeId}&livreur_id=${livreurId}`
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Erreur');
+        }
+    } catch (error) {
+        alert('Erreur de connexion');
+    }
+}
+</script>
+<script>
+// Toggle zone actif/inactif
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.toggle-switch').forEach(el => {
+        el.addEventListener('click', async function() {
+            const zoneId = this.dataset.zoneId;
+            const currentlyActive = this.classList.contains('active');
+
+            // Optimistic UI
+            this.classList.toggle('active');
+
+            try {
+                const response = await fetch(`/livraison/zone/${zoneId}/toggle`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    // revert
+                    this.classList.toggle('active');
+                    alert(data.error || 'Erreur lors du changement de statut');
+                }
+            } catch (err) {
+                this.classList.toggle('active');
+                alert('Erreur de connexion');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gérer les livraisons{% endblock %}
+
+{% block body %}
+<div class="gerer-livraisons">
+    <div class="page-header mb-4">
+        <h1 class="page-title">Affecter les livraisons</h1>
+        <p class="text-muted">Affectez les livreurs disponibles aux commandes en attente</p>
+    </div>
+
+    <div class="row g-4">
+        {% for zoneId, data in commandesParZone %}
+        <div class="col-12">
+            <div class="card card-elevated">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            {{ data.zoneName }}
+                        </h5>
+                        <span class="badge-status" style="background:rgba(255,255,255,0.12);color:white;">{{ data.count }} commande(s)</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for commande in data.commandes %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="border rounded p-3 h-100 card-elevated" style="background:white;">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong class="text-primary">{{ commande.numero }}</strong>
+                                    <span class="badge-status {{ commande.statutBadgeClass }}">{{ commande.statutLabel }}</span>
+                                </div>
+                                <p class="mb-1">
+                                    <i class="fas fa-user text-muted me-1"></i>
+                                    {{ commande.client.nomComplet }}
+                                </p>
+                                <p class="mb-1">
+                                    <i class="fas fa-phone text-muted me-1"></i>
+                                    {{ commande.client.telephone }}
+                                </p>
+                                <p class="mb-2">
+                                    <strong>{{ commande.montantTotal|number_format(0, ',', ' ') }} FCFA</strong>
+                                </p>
+                                <div class="mt-auto">
+                                    <select class="form-select form-select-sm livreur-select" 
+                                            data-commande-id="{{ commande.id }}">
+                                        <option value="">Affecter un livreur</option>
+                                        {% for livreur in livreurs %}
+                                        <option value="{{ livreur.id }}">{{ livreur.nomComplet }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3 opacity-50"></i>
+                    <h4 class="text-muted">Toutes les livraisons sont affectées !</h4>
+                    <p class="text-muted mb-0">Aucune commande en attente de livreur</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.querySelectorAll('.livreur-select').forEach(select => {
+    select.addEventListener('change', async function() {
+        const commandeId = this.dataset.commandeId;
+        const livreurId = this.value;
+        
+        if (!livreurId) return;
+        
+        try {
+            const response = await fetch('/livraison/affecter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `commande_id=${commandeId}&livreur_id=${livreurId}`
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                this.closest('.col-md-6').remove();
+            } else {
+                alert(data.error);
+            }
+        } catch (error) {
+            alert('Erreur de connexion');
+        }
+    });
+});
+</script>
+{% endblock %}
