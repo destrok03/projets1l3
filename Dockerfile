@@ -39,10 +39,6 @@ COPY . .
 ENV APP_ENV=prod
 ENV APP_DEBUG=0
 
-# Optimize autoload and dump prod env if possible
-RUN composer dump-autoload --optimize --classmap-authoritative || true
-RUN composer dump-env prod --no-interaction || true
-
 # Ensure runtime directories exist and permissions are correct
 RUN mkdir -p var var/cache var/log public && \
     touch var/log/prod.log || true && \
@@ -65,9 +61,10 @@ RUN cat > /etc/apache2/sites-available/000-default.conf <<'EOF'
 EOF
 
 # Clear and warmup cache in prod (ignore failures during build)
-RUN APP_ENV=prod php bin/console cache:clear --no-warmup --no-interaction || true
-RUN APP_ENV=prod php bin/console cache:warmup --no-interaction || true
+# Entrypoint will handle environment-dependent actions at container start
+COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh || true
 
 # Expose port 80 and run Apache in foreground
 EXPOSE 80
-CMD ["apache2-foreground"]
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
