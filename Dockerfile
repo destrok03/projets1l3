@@ -27,8 +27,8 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+# Install dependencies (don't run composer scripts during build)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/var \
@@ -46,9 +46,9 @@ RUN echo '<VirtualHost *:80>\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Clear cache and warmup
-RUN php bin/console cache:clear --env=prod --no-debug || true
-RUN php bin/console cache:warmup --env=prod --no-debug || true
+# Clear cache and warmup (force production env so dev bundles are not required)
+RUN APP_ENV=prod php bin/console cache:clear --no-debug --env=prod || true
+RUN APP_ENV=prod php bin/console cache:warmup --env=prod || true
 
 # Expose port 80
 EXPOSE 80
