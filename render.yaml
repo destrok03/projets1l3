@@ -11,11 +11,15 @@ services:
       - key: APP_ENV
         value: prod
       - key: APP_SECRET
-        value: YOUR_PRODUCTION_APP_SECRET
+        value: "REPLACE_WITH_APP_SECRET"
       - key: DATABASE_URL
-        value: postgresql://USER:PASSWORD@HOST:5432/DBNAME
+        value: "REPLACE_WITH_DATABASE_URL"
       - key: DEFAULT_URI
-        value: https://your-app.onrender.com
+        value: "REPLACE_WITH_DEFAULT_URI"
+      - key: APP_DEBUG
+        value: "0"
+      - key: VAR_DUMPER_SERVER
+        value: ""
     healthCheckPath: /
     minInstances: 1
     maxInstances: 3
