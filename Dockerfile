@@ -46,6 +46,24 @@ RUN mkdir -p var/cache var/log public/assets assets/vendor \
 # Run importmap install at build if possible (non-fatal)
 RUN su -s /bin/sh www-data -c "php bin/console importmap:install --no-interaction --env=prod || true"
 
+# Write Apache vhost forcing DocumentRoot to the Symfony `public` directory
+RUN cat > /etc/apache2/sites-available/000-default.conf <<'EOF'
+<VirtualHost *:80>
+  ServerName localhost
+  DocumentRoot /var/www/html/public
+
+  <Directory /var/www/html/public>
+    AllowOverride All
+    Require all granted
+    DirectoryIndex index.php index.html
+    FallbackResource /index.php
+  </Directory>
+
+  ErrorLog /var/log/apache2/error.log
+  CustomLog /var/log/apache2/access.log combined
+</VirtualHost>
+EOF
+
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
