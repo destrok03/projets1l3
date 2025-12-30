@@ -17,7 +17,7 @@ services:
       - key: DEFAULT_URI
         value: "REPLACE_WITH_DEFAULT_URI"
       - key: APP_DEBUG
-        value: "0"
+        value: "1"
       - key: VAR_DUMPER_SERVER
         value: ""
     healthCheckPath: /
